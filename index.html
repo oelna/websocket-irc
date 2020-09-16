@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>IRC Client Demo</title>
+
+	<style>
+
+		:root {
+			color-scheme: light dark;
+
+			--color-mode: 'light';
+			--accent-primary: #007aff;
+			--accent-secondary: #eee;
+			--accent-tertiary: #c2e6c2;
+			--text-color: #222;
+			--background-color: #f4f4f4;
+			--selection-color: #ffd86b;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--color-mode: 'dark';
+			}
+
+			:root:not([data-theme]) {
+				--accent-primary: #007aff;
+				--accent-secondary: #2b2925;
+				--accent-tertiary: #242b24;
+				--text-color: #999;
+				--background-color: #161a1b;
+				--selection-color: #ffd86b;
+			}
+		}
+
+		* { box-sizing: border-box; }
+		html {
+			font: 100%/1.4 -system-ui, Helvetica, Arial, sans-serif;
+			background-color: var(--background-color);
+		}
+
+		ul {
+			padding: 0;
+			margin: 0;
+		}
+
+		li {
+			list-style: none;
+		}
+
+		input {
+			font-size: 1rem;
+		}
+
+		h1, h2, h3 {
+			margin: 0 0 0.2em 0;
+		}
+
+		button,
+		a.button,
+		input[type="submit"],
+		input[type="button"] {
+			-webkit-appearance: none;
+			appearance: none;
+			border: 0;
+			font-size: 1rem;
+			background-color: var(--accent-primary);
+			color: #fffd;
+			padding: 0.2em 0.5em 0.25em;
+			border-radius: 0.2em;
+			cursor: pointer;
+		}
+
+		button:hover,
+		a.button:hover,
+		input[type="submit"]:hover,
+		input[type="button"]:hover,
+		button:focus,
+		a.button:focus,
+		input[type="submit"]:focus,
+		input[type="button"]:focus {
+			opacity: 0.9;
+		}
+
+		input[type="text"],
+		input[type="number"] {
+			font-size: 1rem;
+			border: 1px solid #9999;
+			background-color: transparent;
+			padding: 0.15em 0.2em 0.2em;
+			color: var(--text-color);
+		}
+
+		input[readonly] {
+			background-color: #9993;
+			color: #0005;
+		}
+
+		#app {
+			border: 0px solid #aaa;
+			background-color: #ffffff0a;
+			padding: 0.5rem;
+			display: grid;
+			grid-template-columns: 1fr 2fr;
+			/* grid-template-rows: 50px 100px; */
+			grid-gap: 1rem;
+			max-width: 140ch;
+			margin: 1rem auto;
+		}
+
+		#main-nav {
+			padding: 0 1em 1em 1em;
+			padding: 0.5rem;
+			grid-row: 1;
+			grid-column: 1 / 2;
+		}
+
+		#connection-indicator::before {
+			content: "";
+			display: inline-block;
+			vertical-align: middle;
+			width: 0.5em;
+			height: 0.5em;
+			border-radius: 100%;
+			background-color: rgb(255,59,48);
+			margin-right: 0.5em;
+		}
+
+		#connection-indicator.on::before {
+			background-color: rgb(52,199,89);
+		}
+
+		#channels {
+			border-top: 0 solid #ccc;
+			padding: 0.5rem;
+			grid-row: 1;
+			grid-column: 2 / 3;
+		}
+
+		#channels a {
+			text-decoration: none;
+			color: currentColor;
+		}
+
+		#channels a:hover,
+		#channels a:focus {
+			text-decoration: underline;
+		}
+
+		#chats {
+			grid-row: 2;
+			grid-column: 2 / 3;
+		}
+
+		#messages {
+			border-top: 0.2rem solid #ccc;
+			padding: 0.5rem;
+		}
+
+		#messages nav {
+			margin-bottom: 0.5em;
+		}
+
+		#messages nav ul {
+			display: flex;
+		}
+
+		#messages nav a {
+			background: #eee;
+			color: #0007;
+			text-decoration: none;
+			padding: 0.2em 0.5em 0.25em;
+			border: 1px solid #eee;
+			border-bottom: 1px solid #ccc;
+		}
+
+		#messages nav .active a {
+			color: var(--text-color);
+			background: transparent;
+			border: 1px solid #ccc;
+			border-bottom-color: transparent;
+		}
+
+		#messages .tab-content > li:not(.active) {
+			display: none;
+		}
+
+		#messages .tab-content > li:not([data-title="server"]) .server,
+		#messages .tab-content > li:not([data-title="server"]) .command,
+		#messages .tab-content > li:not([data-title="server"]) .target {
+			opacity: 0.2;
+		}
+
+		#messages .tab-content .messages {
+			padding-top: 1rem;
+			max-height: 60vh;
+			overflow-y: scroll;
+			overflow-x: hidden;
+		}
+
+		#messages .tab-content .messages li {
+			padding: 0.1em 0;
+			overflow-wrap: break-word;
+			word-break: break-all; 
+		}
+
+		#messages .tab-content .messages li + li {
+			border-top: 1px solid #eee;
+		}
+
+		#messages .tab-content .messages li.error {
+			background: #f4f4f4;
+			border-top-color: #ccc;
+		}
+
+		#messages .tab-content .messages li.self {
+			/* chat message you sent */
+			color: var(--accent-primary);
+		}
+
+		#messages .tab-content .messages li.mention {
+			/* chat message that mentions your nickname */
+			background: #4396f13b;
+			color: #fff;
+		}
+
+		#messages .tab-content .messages li.pm {
+			/* chat message by a normal user */
+		}
+
+		#messages .tab-content .messages li span,
+		#messages .tab-content .messages li time {
+			
+		}
+
+		#input {
+			border-top: 1px solid #ccc;
+			padding: 0.5rem;
+			display: flex;
+		}
+
+		#input input[type="text"],
+		#input textarea { flex: 1; }
+		#input input[type="submit"] { flex: 0 0 8ch; margin-left: 1em; }
+
+		#userdata {
+			border-top: 0.2rem solid #ccc;
+			padding: 0.5rem;
+			grid-row: 2;
+			grid-column: 1 / 2;
+		}
+
+		#userdata form label {
+			display: inline-block;
+			
+			margin-right: 0.5em;
+		}
+
+		#userdata form p.input {
+			display: flex;
+		}
+
+		#userdata form p.input label {
+			flex-basis: 14ch;
+		}
+
+		#userdata form p.input input[type="text"],
+		#userdata form p.input input[type="number"] {
+			flex: 1;
+			border: 0;
+			border-bottom: 1px solid #9993;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="app">
+		<nav id="main-nav">
+			<span id="connection-indicator" v-bind:class="connected ? 'on' : 'off'">{{ connected ? 'Connected' : 'Disconnected' }}</span> <button class="primary" v-on:click.prevent="toggleConnection">{{ connected ? 'Disconnect' : 'Connect' }}</button>
+		</nav>
+		<div id="channels">
+			<h2>Available Channels</h2>
+			<ul>
+				<li v-for="channel in channels">
+					<a v-bind:href="channel" v-on:click.prevent="join($event,channel)">{{ channel }}</a>
+				</li>
+			</ul>
+		</div>
+		<div id="chats">
+			<div id="messages">
+				<h2>Connected channels</h2>
+				<nav class="tab-navigation">
+					<ul>
+						<li v-for="tab in tabs" v-bind:class="(tab.active) ? 'active' : ''">
+							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}</a>
+						</li>
+					</ul>
+				</nav>
+				<ul class="tab-content">
+					<li v-for="tab in tabs" v-bind:data-title="tab.title" v-bind:class="(tab.active) ? 'active' : ''">
+						<ul class="messages">
+							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
+								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
+								<span class="server">{{ msg.server }}</span>
+								<span class="command">{{ msg.command }}</span>
+								<span class="target">{{ msg.target }}</span>
+								<span class="trailing">{{ msg.message }}</span>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+			<form id="input">
+				<input type="text" id="msg" placeholder="your message" />
+				<input type="submit" value="Send" />
+			</form>
+		</div>
+		<div id="userdata">
+			<h2>User data</h2>
+			<form>
+				<p class="input"><label for="user-name">username</label><input type="text" id="user-name" placeholder="your username" v-bind:value="username" v-bind:readonly="connectionLock" required /></p>
+				<p class="input"><label for="user-realname">real name</label><input type="text" id="user-realname" placeholder="your real name" v-bind:value="realname" v-bind:readonly="connectionLock" required /></p>
+				<p class="input"><label for="user-nick">nickname</label><input type="text" id="user-nick" placeholder="your nickname" v-bind:value="nick" required /></p>
+				<p class="input"><input type="submit" value="Save" v-on:click.prevent="save" /></p>
+				<p>Please note: For changes to username or real name to happen, you need to disconnect from the IRC server.</p>
+
+				<p class="input"><label for="server-url">Server URL</label><input type="text" id="server-url" placeholder="irc.unrealircd.org" v-model="serverurl" v-bind:readonly="connectionLock" required /></p>
+				<p class="input"><label for="server-port">Websocket Port</label><input type="number" id="server-port" placeholder="443" v-model="serverport" v-bind:readonly="connectionLock" required /></p>
+			</form>
+		</div>
+	</div>
+
+	<script src="./vue.js"></script>
+	<script type="module">
+
+		const app = {
+			'parseMessage': function (rawMessage) {
+				const regex = /^(:(\S+) )?(\S+)( (?!:)(.+?))?( :(.+))?$/gm;
+				const parsedMessage = regex.exec(rawMessage);
+
+				/*
+				const newRegex = /^(?::(([^@!\ ]*)(?:(?:!~?([^@]*))?@([^\ ]*))?)\ )?([^\ ]+)((?:\ [^:\ ][^\ ]*){0,14})(?:\ :?(.*))?$/
+				const parsedMessage2 = regex.exec(rawMessage);
+				console.warn(parsedMessage2);
+				*/
+
+				// genius! https://codegolf.stackexchange.com/questions/101988/parse-a-raw-irc-message
+				const parse = (s,[a,...b]=s.split(/ +:/))=>a.split` `.concat(b);
+				const parsedMessage3 = parse(rawMessage);
+				console.warn(parsedMessage3);
+
+				const msg = {
+					'server': parsedMessage[2],
+					'command': parsedMessage[3],
+					'target': parsedMessage[5],
+					'message': parsedMessage[7]
+				};
+
+				if (parsedMessage3[0] != 'PING') {
+					msg.prefix = app.parsePrefix(parsedMessage3[0]);
+					
+					console.log('user', msg.prefix);
+				}
+
+				return msg;
+			},
+			/* https://github.com/sigkell/irc-prefix-parser */
+			'parsePrefix' : function (prefix) {
+				if (!prefix || prefix.length === 0) {
+					return null;
+				}
+
+				if (prefix.startsWith(':')) {
+					prefix = prefix.substring(1);
+				}
+
+				const dpos = prefix.indexOf('.') + 1;
+				const upos = prefix.indexOf('!') + 1;
+				const hpos = prefix.indexOf('@', upos) + 1;
+
+				if (upos === 1 || hpos === 1) {
+					return null;
+				}
+
+				const result = {
+					'raw': prefix,
+					'isServer': false,
+					'nick': null,
+					'user': null,
+					'host': null
+				};
+
+				if (upos > 0) {
+					result.nick = prefix.slice(0, upos - 1);
+					if (hpos > 0) {
+						result.user = prefix.slice(upos, hpos - 1);
+						result.host = prefix.slice(hpos);
+					} else {
+						result.user = prefix.slice(upos);
+					}
+				} else if (hpos > 0) {
+					result.nick = prefix.slice(0, hpos - 1);
+					result.host = prefix.slice(hpos);
+				} else if (dpos > 0) {
+					result.host = prefix;
+					result.isServer = true;
+				} else {
+					result.nick = prefix;
+				}
+
+				return result;
+			}
+		};
+
+		const seed = Math.floor(Math.random()*100000+1);
+		app.user = new Vue({
+			'el': '#userdata',
+			'data': {
+				'username': 'guest_'+seed,
+				'nick': 'guest_'+seed,
+				'realname': 'Unknown',
+				'connectionLock': false,
+				'serverurl': 'irc2.arnorichter.de',
+				'serverport': 43183
+			},
+			'created': function () {
+				const userString = localStorage.getItem('user');
+				if (userString) {					
+					const user = JSON.parse(userString);
+
+					this.username = user.username;
+					this.realname = user.realname;
+					this.nick = user.nickname;
+				}
+			},
+			'methods': {
+				'save': function () {
+					const data = {
+						'username': document.querySelector('#user-name').value,
+						'realname': document.querySelector('#user-realname').value,
+						'nickname': document.querySelector('#user-nick').value
+					}
+
+					this.username = data.username;
+					this.realname = data.realname;
+					this.nick = data.nickname;
+
+					localStorage.setItem('user', JSON.stringify(data));
+
+					//console.log(this.username, this.realname, this.nick);
+					// app.connection.ws.send('USER '+this.username+' 0 * :'+this.realname);
+					app.connection.ws.send('NICK '+this.nick);
+				}
+			}
+		});
+
+		app.server = {
+			'protocol': 'wss',
+			'url': 'irc2.arnorichter.de',
+			'port': 43183
+		}
+
+		app.channelList = new Vue({
+			'el': '#channels',
+			'data': {
+				'channels': []
+			},
+			'methods': {
+				'join': function (e, channel) {
+
+					if (app.connection.ws === null) return;
+
+					console.log('joining channel', channel);
+					app.connection.ws.send('JOIN '+channel);
+
+					const exists = app.messageWindow.tabs.find(o => o.title === channel);
+					if (exists) {
+						//console.error('tab already exists', exists);
+						app.messageWindow.activate(channel);
+					} else {
+						//console.error('create tab');
+						const newTab = {
+							'title': channel,
+							'active': false,
+							'messages': [
+								{
+									'ts': Date.now(),
+									'server': undefined,
+									'command': undefined,
+									'target': app.user.nick,
+									'message': 'joined channel '+channel
+								}
+							]
+						};
+						app.messageWindow.tabs.push(newTab);
+						app.messageWindow.activate(newTab.title);
+					}
+				},
+				'regenerate': function () {
+
+				}
+			}
+		});
+
+		app.messageWindow = new Vue({
+			'el': '#messages',
+			'data': {
+				'tabs': []
+			},
+			'computed': {
+				'activeTab': function () {
+					return this.tabs.find(tab => tab.active === true);
+				}
+			},
+			'created': function () {
+				const serverTab = {
+					'title': 'server',
+					'active': true,
+					'messages': []
+				};
+				this.tabs.push(serverTab);
+			},
+			'updated': function () {
+				const msgList = this.$el.querySelector('[data-title="'+this.activeTab.title+'"] .messages');
+
+				msgList.scrollTop = msgList.clientHeight;
+			},
+			'methods': {
+				'get': function (title) {
+					const tab = this.tabs.find(o => o.title === title);
+
+					return (tab) ? tab : false;
+				},
+				'activate': function (title) {
+					if (!this.get(title)) return false;
+
+					for (const tab of app.messageWindow.tabs) {
+						if (tab.title == title) {
+							tab.active = true;
+						} else {
+							tab.active = false;
+						}
+					}
+				},
+				'formatDatetime': function (ts, mode) {
+					/* via https://gist.github.com/kmaida/6045266 */
+					const d = new Date(ts);
+					const yyyy = d.getFullYear();
+					const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+					const dd = d.getDate().toString().padStart(2, '0');
+					const hh = d.getHours().toString().padStart(2, '0');
+					const min = d.getMinutes().toString().padStart(2, '0');
+					const sec = d.getSeconds().toString().padStart(2, '0');
+
+					const time = yyyy + '-' + mm + '-' + dd + ' ' + hh + ':' + min + ':' + sec;
+					const shorttime = hh + ':' + min + ':' + sec;
+
+					return (mode && mode == 'short') ? shorttime : time;
+				},
+				'msgType': function (message) {
+					// console.log('msg type', message);
+
+					if (message.prefix && !message.prefix.isServer && (message.prefix.nick == app.user.nick || message.prefix.nick == '@'+app.user.nick)) {
+						// this is a normal PRIVMSG sent by you
+						return 'self';
+					}
+
+					const addressedToYou = new RegExp('@'+app.user.nick + '\\b');
+					if (addressedToYou.test(message.message)) {
+						// this is a PRIVMSG mentioning you
+						return 'mention';
+					}
+
+					if (message.command && message.command.toUpperCase() == 'PRIVMSG') {
+						// this is a PRIVMSG
+						return 'pm';
+					}
+
+					return '';
+				}
+			}
+		});
+
+		app.connection = new Vue({
+			'data': {
+				'ws': null
+			},
+			'methods': {
+				'connect': function () {
+					this.ws = new WebSocket('wss://'+app.user.serverurl+':'+app.user.serverport);
+
+					this.ws.onopen = this.onOpen;
+					this.ws.onerror = this.onError;
+					this.ws.onclose = this.onClose; 
+					this.ws.onmessage = this.onMessage;
+				},
+				'disconnect': function () {
+					sendMessage('/QUIT');
+					// if the QUIT command works, no need to manually call close
+					// this.ws.close();
+				},
+				'onOpen': function (event) {
+					console.log('INFO: Socket Opened');
+					app.mainNavigation.connected = true;
+					app.user.connectionLock = true; // prevent changes to user data
+
+					this.ws.send('NICK '+app.user.nick);
+					this.ws.send('USER '+app.user.username+' 0 * :'+app.user.realname);
+				},
+				'onError': function (error) {
+					console.log('ERR: ', error);
+				},
+				'onClose': function (event) {
+					console.log('INFO: Socket Closed');
+
+					this.ws.onopen = function () {};
+					this.ws.onerror = function () {};
+					this.ws.onclose = function () {};
+					this.ws.onmessage = function () {};
+
+					this.ws = null;
+					app.mainNavigation.connected = false;
+					app.user.connectionLock = false;
+
+					const openChannels = app.messageWindow.tabs.map(function (a) {
+						return a.title;
+					});
+
+					for (const channel of openChannels) {
+						const tab = app.messageWindow.get(channel);
+						const msg = {
+							'ts': Date.now(),
+							'server': undefined,
+							'command': undefined,
+							'target': app.user.nick,
+							'message': 'closed the connection.'
+						};
+						tab.messages.push(msg);
+					}
+				},
+				'onMessage': function (event) {
+					//console.log('RECV: ', event.data);
+
+					const msg = app.parseMessage(event.data);
+
+					//console.log(msg);
+
+					// handle ping
+					// if (event.data.toUpperCase().startsWith('PING')) {
+					if (msg.command && msg.command.toUpperCase() == 'PING') {
+						const messageParts = event.data.split(' ');
+						//console.log('replying with:', 'PONG '+messageParts[1]);
+						this.ws.send('PONG '+messageParts[1]);
+						return;
+					}
+
+					// if (event.data.startsWith(':'+server.url)) {
+					if (msg.server && msg.server == app.server.url) {
+						//console.warn('server message:', event.data);
+
+						if (msg.command == '372' || msg.command == '422') {
+							// message of the day, request initial LIST
+							this.ws.send('LIST');
+						}
+
+						if (msg.command == '322') {
+							// list items ("channels")
+							let parts = msg.target.split(' ');
+							//console.warn(msg.target.split(' '));
+							let chn = parts[1];
+
+							app.channelList.channels.push(chn);
+						}
+					}
+
+					if (msg.target && msg.target.startsWith('#')) {
+						const targetTab = app.messageWindow.get(msg.target);
+						console.warn(targetTab);
+						msg.ts = Date.now();
+						targetTab.messages.push(msg);
+					} else {
+						const serverTab = app.messageWindow.get('server');
+						msg.ts = Date.now();
+						serverTab.messages.push(msg);
+					}
+				}
+			}
+		});
+
+		app.mainNavigation = new Vue({
+			'el': '#main-nav',
+			'data': {
+				'connected': false
+			},
+			'methods': {
+				'toggleConnection': function () {
+					if (app.connection.ws === null) {
+						app.connection.connect();
+					} else {
+						app.connection.disconnect();
+					}
+				}
+			}
+		});
+
+		const sendMessage = function (text, channel) {
+			
+			if (text.startsWith('/') || !channel) {
+				//console.log(text.substring(1)+"\r\n");
+				app.connection.ws.send(text.substring(1)+"\r\n");
+			} else {
+				channel = (channel.startsWith('#')) ? channel : '#'+channel;
+				//console.log('PRIVMSG '+channel+' :'+text+"\r\n");
+				app.connection.ws.send('PRIVMSG '+channel+' :'+text+"\r\n");
+
+				const tab = app.messageWindow.get(channel);
+				if (!tab) {
+					console.error('You can\'t talk here, you need to join a channel first!');
+					return;
+				}
+				const msg = {
+					'ts': Date.now(),
+					'server': undefined,
+					'command': undefined,
+					'target': '@'+app.user.nick,
+					'message': text
+				};
+				tab.messages.push(msg);
+			}
+		}
+
+		document.querySelector('#input').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const msgField = document.querySelector('#msg');
+
+			sendMessage(msgField.value, '#hsma');
+			msgField.value = '';
+		});
+
+		window.addEventListener('beforeunload', function (event) {
+			app.connection.disconnect();
+		});
+	</script>
+
+</body>
+</html>
