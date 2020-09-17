@@ -309,7 +309,7 @@
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
 								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
 								<span class="server">{{ niceServerName(msg) }}</span>
-								<span class="command">{{ msg.command }}</span>
+								<span class="command" v-bind:title="msg.code ? msg.code : ''">{{ msg.command }}</span>
 								<span class="target">{{ msg.target }}</span>
 								<span class="trailing">{{ msg.message }}</span>
 							</li>
@@ -340,7 +340,10 @@
 	<script src="./vue.js"></script>
 	<script type="module">
 
+		import { codes as RFC1459codes } from './rfc1459codes.js';
+
 		const app = {
+			'codes': RFC1459codes,
 			'parseMessage': function (rawMessage) {
 				const regex = /^(:(\S+) )?(\S+)( (?!:)(.+?))?( :(.+))?$/gm;
 				const parsedMessage = regex.exec(rawMessage);
@@ -367,6 +370,12 @@
 					msg.prefix = app.parsePrefix(parsedMessage3[0]);
 					
 					// console.log('user', msg.prefix);
+				}
+
+				if (!isNaN(msg.command)) {
+					// save a human readable status
+					// msg.code = parseInt(msg.command);
+					msg.code = app.codes[msg.command];
 				}
 
 				return msg;
