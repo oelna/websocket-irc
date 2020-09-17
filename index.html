@@ -185,10 +185,13 @@
 			display: none;
 		}
 
-		#messages .tab-content > li:not([data-title="server"]) .server,
+		#messages .tab-content li .server::after {
+			content: ':';
+		}
+
 		#messages .tab-content > li:not([data-title="server"]) .command,
 		#messages .tab-content > li:not([data-title="server"]) .target {
-			opacity: 0.2;
+			display: none;
 		}
 
 		#messages .tab-content .messages {
@@ -229,6 +232,10 @@
 		}
 
 		#messages .tab-content .messages li span,
+		#messages .tab-content .messages li time {
+			
+		}
+
 		#messages .tab-content .messages li time {
 			
 		}
@@ -301,7 +308,7 @@
 						<ul class="messages">
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
 								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
-								<span class="server">{{ msg.server }}</span>
+								<span class="server">{{ niceServerName(msg) }}</span>
 								<span class="command">{{ msg.command }}</span>
 								<span class="target">{{ msg.target }}</span>
 								<span class="trailing">{{ msg.message }}</span>
@@ -359,7 +366,7 @@
 				if (parsedMessage3[0] != 'PING') {
 					msg.prefix = app.parsePrefix(parsedMessage3[0]);
 					
-					console.log('user', msg.prefix);
+					// console.log('user', msg.prefix);
 				}
 
 				return msg;
@@ -475,25 +482,17 @@
 
 					const exists = app.messageWindow.tabs.find(o => o.title === channel);
 					if (exists) {
-						//console.error('tab already exists', exists);
 						app.messageWindow.activate(channel);
 					} else {
-						//console.error('create tab');
 						const newTab = {
 							'title': channel,
 							'active': false,
-							'messages': [
-								{
-									'ts': Date.now(),
-									'server': undefined,
-									'command': undefined,
-									'target': app.user.nick,
-									'message': 'joined channel '+channel
-								}
-							]
+							'messages': []
 						};
 						app.messageWindow.tabs.push(newTab);
 						app.messageWindow.activate(newTab.title);
+
+						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS #hsma :joined the channel');
 					}
 				},
 				'regenerate': function () {
@@ -559,6 +558,9 @@
 				},
 				'msgType': function (message) {
 					// console.log('msg type', message);
+					if (message.prefix) {
+					// console.error(message, message.prefix.nick,'@'+app.user.nick);
+					}
 
 					if (message.prefix && !message.prefix.isServer && (message.prefix.nick == app.user.nick || message.prefix.nick == '@'+app.user.nick)) {
 						// this is a normal PRIVMSG sent by you
@@ -577,6 +579,32 @@
 					}
 
 					return '';
+				},
+				'niceServerName': function (message) {
+					console.log('niceServer', message);
+					// msg.prefix.isServer ? msg.prefix.host : msg.prefix.nick
+					if (message.prefix) {
+						if (!message.prefix.isServer && message.prefix.nick) {
+							return message.prefix.nick;
+						} else {
+							return message.prefix.host;
+						}
+					}
+					return 'unknown';
+				},
+				'addMessage': function (text, channel) {
+					if (!text || !channel) return;
+
+					const command = ':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 PRIVMSG '+channel+' :'+text;
+					this.addRawCommand(command);
+				},
+				'addRawCommand': function (str) {
+					if (!str) return;
+
+					const customEvent = new Event('customCommand');
+					customEvent.data = str+"\r\n";
+
+					app.connection.onMessage(customEvent);
 				}
 			}
 		});
@@ -639,16 +667,18 @@
 					}
 				},
 				'onMessage': function (event) {
-					//console.log('RECV: ', event.data);
+					// console.log('RECV: ', event.data, event);
 
-					const msg = app.parseMessage(event.data);
+					const data = (event.detail) ? event.detail : event.data;
 
-					//console.log(msg);
+					const msg = app.parseMessage(data);
+
+					console.log(msg);
 
 					// handle ping
 					// if (event.data.toUpperCase().startsWith('PING')) {
 					if (msg.command && msg.command.toUpperCase() == 'PING') {
-						const messageParts = event.data.split(' ');
+						const messageParts = data.split(' ');
 						//console.log('replying with:', 'PONG '+messageParts[1]);
 						this.ws.send('PONG '+messageParts[1]);
 						return;
@@ -704,7 +734,7 @@
 		});
 
 		const sendMessage = function (text, channel) {
-			
+
 			if (text.startsWith('/') || !channel) {
 				//console.log(text.substring(1)+"\r\n");
 				app.connection.ws.send(text.substring(1)+"\r\n");
@@ -725,7 +755,8 @@
 					'target': '@'+app.user.nick,
 					'message': text
 				};
-				tab.messages.push(msg);
+				
+				app.messageWindow.addMessage(text, channel);
 			}
 		}
 
