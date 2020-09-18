@@ -185,7 +185,7 @@
 			display: none;
 		}
 
-		#messages .tab-content li .server::after {
+		#messages .tab-content li .prefix::after {
 			content: ':';
 		}
 
@@ -212,7 +212,7 @@
 		}
 
 		#messages .tab-content .messages li.error {
-			background: #f4f4f4;
+			background: red;
 			border-top-color: #ccc;
 		}
 
@@ -308,10 +308,10 @@
 						<ul class="messages">
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
 								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
-								<span class="server">{{ niceServerName(msg) }}</span>
-								<span class="command" v-bind:title="msg.code ? msg.code : ''">{{ msg.command }}</span>
-								<span class="target">{{ msg.target }}</span>
-								<span class="trailing">{{ msg.message }}</span>
+								<span class="prefix">{{ !msg.prefix.isServer ? msg.prefix.nick : msg.prefix.host }}</span>
+								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''">{{ msg.command }}</span>
+								<span class="target">{{ msg.params[0] }}</span>
+								<span class="params">{{ msg.params[1] }}</span>
 							</li>
 						</ul>
 					</li>
@@ -341,90 +341,26 @@
 	<script type="module">
 
 		import { codes as RFC1459codes } from './rfc1459codes.js';
+		import { Parser } from './parser.js';
 
 		const app = {
-			'codes': RFC1459codes,
-			'parseMessage': function (rawMessage) {
-				const regex = /^(:(\S+) )?(\S+)( (?!:)(.+?))?( :(.+))?$/gm;
-				const parsedMessage = regex.exec(rawMessage);
+			'parser': new Parser(),
+			'sendMessage': function (text, channel) {
 
-				/*
-				const newRegex = /^(?::(([^@!\ ]*)(?:(?:!~?([^@]*))?@([^\ ]*))?)\ )?([^\ ]+)((?:\ [^:\ ][^\ ]*){0,14})(?:\ :?(.*))?$/
-				const parsedMessage2 = regex.exec(rawMessage);
-				console.warn(parsedMessage2);
-				*/
-
-				// genius! https://codegolf.stackexchange.com/questions/101988/parse-a-raw-irc-message
-				const parse = (s,[a,...b]=s.split(/ +:/))=>a.split` `.concat(b);
-				const parsedMessage3 = parse(rawMessage);
-				console.warn(parsedMessage3);
-
-				const msg = {
-					'server': parsedMessage[2],
-					'command': parsedMessage[3],
-					'target': parsedMessage[5],
-					'message': parsedMessage[7]
-				};
-
-				if (parsedMessage3[0] != 'PING') {
-					msg.prefix = app.parsePrefix(parsedMessage3[0]);
-					
-					// console.log('user', msg.prefix);
-				}
-
-				if (!isNaN(msg.command)) {
-					// save a human readable status
-					// msg.code = parseInt(msg.command);
-					msg.code = app.codes[msg.command];
-				}
-
-				return msg;
-			},
-			/* https://github.com/sigkell/irc-prefix-parser */
-			'parsePrefix' : function (prefix) {
-				if (!prefix || prefix.length === 0) {
-					return null;
-				}
-
-				if (prefix.startsWith(':')) {
-					prefix = prefix.substring(1);
-				}
-
-				const dpos = prefix.indexOf('.') + 1;
-				const upos = prefix.indexOf('!') + 1;
-				const hpos = prefix.indexOf('@', upos) + 1;
-
-				if (upos === 1 || hpos === 1) {
-					return null;
-				}
-
-				const result = {
-					'raw': prefix,
-					'isServer': false,
-					'nick': null,
-					'user': null,
-					'host': null
-				};
-
-				if (upos > 0) {
-					result.nick = prefix.slice(0, upos - 1);
-					if (hpos > 0) {
-						result.user = prefix.slice(upos, hpos - 1);
-						result.host = prefix.slice(hpos);
-					} else {
-						result.user = prefix.slice(upos);
-					}
-				} else if (hpos > 0) {
-					result.nick = prefix.slice(0, hpos - 1);
-					result.host = prefix.slice(hpos);
-				} else if (dpos > 0) {
-					result.host = prefix;
-					result.isServer = true;
+				if (text.startsWith('/') || !channel) {
+					app.connection.ws.send(text.substring(1)+"\r\n");
 				} else {
-					result.nick = prefix;
-				}
+					channel = (channel.startsWith('#')) ? channel : '#'+channel;
+					app.connection.ws.send('PRIVMSG '+channel+' :'+text+"\r\n");
 
-				return result;
+					const tab = app.messageWindow.get(channel);
+					if (!tab) {
+						console.error('You can\'t talk here, you need to join a channel first!');
+						return;
+					}
+					
+					app.messageWindow.addMessage(text, channel);
+				}
 			}
 		};
 
@@ -501,7 +437,7 @@
 						app.messageWindow.tabs.push(newTab);
 						app.messageWindow.activate(newTab.title);
 
-						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS #hsma :joined the channel');
+						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :joined the channel');
 					}
 				},
 				'regenerate': function () {
@@ -577,7 +513,7 @@
 					}
 
 					const addressedToYou = new RegExp('@'+app.user.nick + '\\b');
-					if (addressedToYou.test(message.message)) {
+					if (addressedToYou.test(message.params.join(' '))) {
 						// this is a PRIVMSG mentioning you
 						return 'mention';
 					}
@@ -588,18 +524,6 @@
 					}
 
 					return '';
-				},
-				'niceServerName': function (message) {
-					console.log('niceServer', message);
-					// msg.prefix.isServer ? msg.prefix.host : msg.prefix.nick
-					if (message.prefix) {
-						if (!message.prefix.isServer && message.prefix.nick) {
-							return message.prefix.nick;
-						} else {
-							return message.prefix.host;
-						}
-					}
-					return 'unknown';
 				},
 				'addMessage': function (text, channel) {
 					if (!text || !channel) return;
@@ -632,7 +556,7 @@
 					this.ws.onmessage = this.onMessage;
 				},
 				'disconnect': function () {
-					sendMessage('/QUIT');
+					app.sendMessage('/QUIT');
 					// if the QUIT command works, no need to manually call close
 					// this.ws.close();
 				},
@@ -664,15 +588,8 @@
 					});
 
 					for (const channel of openChannels) {
-						const tab = app.messageWindow.get(channel);
-						const msg = {
-							'ts': Date.now(),
-							'server': undefined,
-							'command': undefined,
-							'target': app.user.nick,
-							'message': 'closed the connection.'
-						};
-						tab.messages.push(msg);
+						// app.messageWindow.addMessage('closed the connection.', channel);
+						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :closed the connection.');
 					}
 				},
 				'onMessage': function (event) {
@@ -680,9 +597,7 @@
 
 					const data = (event.detail) ? event.detail : event.data;
 
-					const msg = app.parseMessage(data);
-
-					console.log(msg);
+					const msg = app.parser.parse(data);
 
 					// handle ping
 					// if (event.data.toUpperCase().startsWith('PING')) {
@@ -694,7 +609,7 @@
 					}
 
 					// if (event.data.startsWith(':'+server.url)) {
-					if (msg.server && msg.server == app.server.url) {
+					if (msg.prefix.isServer && msg.prefix.host == app.server.url) {
 						//console.warn('server message:', event.data);
 
 						if (msg.command == '372' || msg.command == '422') {
@@ -704,16 +619,12 @@
 
 						if (msg.command == '322') {
 							// list items ("channels")
-							let parts = msg.target.split(' ');
-							//console.warn(msg.target.split(' '));
-							let chn = parts[1];
-
-							app.channelList.channels.push(chn);
+							app.channelList.channels.push(msg.params[1]);
 						}
 					}
 
-					if (msg.target && msg.target.startsWith('#')) {
-						const targetTab = app.messageWindow.get(msg.target);
+					if (msg.params.length > 0 && msg.params[0].startsWith('#')) {
+						const targetTab = app.messageWindow.get(msg.params[0]);
 						console.warn(targetTab);
 						msg.ts = Date.now();
 						targetTab.messages.push(msg);
@@ -742,38 +653,11 @@
 			}
 		});
 
-		const sendMessage = function (text, channel) {
-
-			if (text.startsWith('/') || !channel) {
-				//console.log(text.substring(1)+"\r\n");
-				app.connection.ws.send(text.substring(1)+"\r\n");
-			} else {
-				channel = (channel.startsWith('#')) ? channel : '#'+channel;
-				//console.log('PRIVMSG '+channel+' :'+text+"\r\n");
-				app.connection.ws.send('PRIVMSG '+channel+' :'+text+"\r\n");
-
-				const tab = app.messageWindow.get(channel);
-				if (!tab) {
-					console.error('You can\'t talk here, you need to join a channel first!');
-					return;
-				}
-				const msg = {
-					'ts': Date.now(),
-					'server': undefined,
-					'command': undefined,
-					'target': '@'+app.user.nick,
-					'message': text
-				};
-				
-				app.messageWindow.addMessage(text, channel);
-			}
-		}
-
 		document.querySelector('#input').addEventListener('submit', function (e) {
 			e.preventDefault();
 			const msgField = document.querySelector('#msg');
 
-			sendMessage(msgField.value, '#hsma');
+			app.sendMessage(msgField.value, '#hsma');
 			msgField.value = '';
 		});
 
