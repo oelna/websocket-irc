@@ -101,7 +101,7 @@
 			background-color: #ffffff0a;
 			padding: 0.5rem;
 			display: grid;
-			grid-template-columns: 1fr 2fr;
+			grid-template-columns: 1fr 2fr 1fr;
 			/* grid-template-rows: 50px 100px; */
 			grid-gap: 1rem;
 			max-width: 140ch;
@@ -277,6 +277,13 @@
 			border: 0;
 			border-bottom: 1px solid #9993;
 		}
+
+		#help {
+			border-top: 0.2rem solid #ccc;
+			padding: 0.5rem;
+			grid-row: 2;
+			grid-column: 3 / 4;
+		}
 	</style>
 </head>
 <body>
@@ -318,7 +325,7 @@
 				</ul>
 			</div>
 			<form id="input">
-				<input type="text" id="msg" placeholder="your message" />
+				<input type="text" id="msg" placeholder="your message" autocomplete="off" />
 				<input type="submit" value="Send" />
 			</form>
 		</div>
@@ -335,16 +342,29 @@
 				<p class="input"><label for="server-port">Websocket Port</label><input type="number" id="server-port" placeholder="443" v-model="serverport" v-bind:readonly="connectionLock" required /></p>
 			</form>
 		</div>
+		<div id="help">
+			<h2>Commands</h2>
+			
+			<ul>
+				<li>/JOIN #&lt;channel&gt;</li>
+				<li>/PART #&lt;channel&gt;</li>
+				<li>/MSG &lt;target&gt; :message</li>
+				<li>/NICK &lt;nickname&gt;</li>
+				<li>/WHOIS &lt;nickname&gt;</li>
+				<li>/MODE #&lt;channel&gt; +o &lt;nickname&gt;</li>
+			</ul>
+
+		</div>
 	</div>
 
 	<script src="./vue.js"></script>
 	<script type="module">
 
-		import { codes as RFC1459codes } from './rfc1459codes.js';
 		import { Parser } from './parser.js';
 
 		const app = {
 			'parser': new Parser(),
+			'inputLog': [],
 			'sendMessage': function (text, channel) {
 
 				if (text.startsWith('/') || !channel) {
@@ -625,7 +645,6 @@
 
 					if (msg.params.length > 0 && msg.params[0].startsWith('#')) {
 						const targetTab = app.messageWindow.get(msg.params[0]);
-						console.warn(targetTab);
 						msg.ts = Date.now();
 						targetTab.messages.push(msg);
 					} else {
@@ -657,8 +676,59 @@
 			e.preventDefault();
 			const msgField = document.querySelector('#msg');
 
+			app.inputLog.unshift(msgField.value);
+			if (app.inputLog.length > 4) { app.inputLog.slice(0,4); }
+
+			// todo: get active channel here!
 			app.sendMessage(msgField.value, '#hsma');
 			msgField.value = '';
+		});
+
+		document.querySelector('#input').addEventListener('keyup', function (e) {
+			// keyboard input history!
+
+			const inputField = this.querySelector('#msg');
+
+			if (e.keyCode == 38) { // up arrow
+				if (app.inputLog.length > 0) {
+					let logPos = inputField.getAttribute('log-position');
+					if (logPos) {
+						logPos = parseInt(logPos);
+
+						logPos++;
+
+						if (!app.inputLog[logPos]) return;
+						
+						inputField.value = app.inputLog[logPos];
+						inputField.setAttribute('log-position', logPos);
+					} else {
+						inputField.value = app.inputLog[0];
+						inputField.setAttribute('log-position', 0);
+					}
+				}
+			}
+
+			if (e.keyCode == 40) { // down arrow
+				if (app.inputLog.length > 0) {
+					let logPos = inputField.getAttribute('log-position');
+					if (logPos) {
+						logPos = parseInt(logPos);
+
+						if (logPos === 0) {
+							inputField.value = '';
+							inputField.setAttribute('log-position', '');
+							return;
+						}
+
+						logPos--;
+
+						if (!app.inputLog[logPos]) return;
+						
+						inputField.value = app.inputLog[logPos];
+						inputField.setAttribute('log-position', logPos);
+					}
+				}
+			}
 		});
 
 		window.addEventListener('beforeunload', function (event) {

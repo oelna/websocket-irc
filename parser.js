@@ -9,6 +9,7 @@ class Parser {
 		};
 	}
 
+	// via https://github.com/crccheck/crc-irc
 	parse(data) {
 		// tags source/prefix command parameters
 		const message = {
