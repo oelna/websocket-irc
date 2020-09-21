@@ -354,12 +354,12 @@
 				<li>/MODE #&lt;channel&gt; +o &lt;nickname&gt;</li>
 			</ul>
 
+			<p><a href="https://gist.github.com/xero/2d6e4b061b4ecbeb9f99">Detailed help</a></p>
 		</div>
 	</div>
 
-	<script src="./vue.js"></script>
 	<script type="module">
-
+		import Vue from './vue.esm.browser.js'; // replace with vue.esm.browser.min.js for production
 		import { Parser } from './parser.js';
 
 		const app = {
@@ -646,6 +646,7 @@
 					if (msg.params.length > 0 && msg.params[0].startsWith('#')) {
 						const targetTab = app.messageWindow.get(msg.params[0]);
 						msg.ts = Date.now();
+						console.log('msg', msg, '');
 						targetTab.messages.push(msg);
 					} else {
 						const serverTab = app.messageWindow.get('server');
