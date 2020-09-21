@@ -137,9 +137,18 @@
 			grid-column: 2 / 3;
 		}
 
+		#channels li {
+			display: inline;
+			margin-right: 0.5ch;
+		}
+
 		#channels a {
+			display: inline-block;
 			text-decoration: none;
-			color: currentColor;
+			color: #000;
+			background-color: #ddd;
+			border-radius: 0.2em;
+			padding: 0.1em 0.4em 0.15em;
 		}
 
 		#channels a:hover,
@@ -295,6 +304,7 @@
 		<div id="channels">
 			<h2>Available Channels</h2>
 			<ul>
+				<li v-if="channels.length < 1">No active channels</li>
 				<li v-for="channel in channels">
 					<a v-bind:href="channel" v-on:click.prevent="join($event,channel)">{{ channel }}</a>
 				</li>
@@ -306,7 +316,8 @@
 				<nav class="tab-navigation">
 					<ul>
 						<li v-for="tab in tabs" v-bind:class="(tab.active) ? 'active' : ''">
-							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}</a>
+							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }} <span v-if="tab.title != 'server'" href="#close" v-on:click.prevent="closeTab(tab.title)">x</span></a> 
+							
 						</li>
 					</ul>
 				</nav>
@@ -365,6 +376,7 @@
 		const app = {
 			'parser': new Parser(),
 			'inputLog': [],
+			'messageLog': [],
 			'sendMessage': function (text, channel) {
 
 				if (text.startsWith('/') || !channel) {
@@ -445,23 +457,14 @@
 					console.log('joining channel', channel);
 					app.connection.ws.send('JOIN '+channel);
 
-					const exists = app.messageWindow.tabs.find(o => o.title === channel);
-					if (exists) {
-						app.messageWindow.activate(channel);
-					} else {
-						const newTab = {
-							'title': channel,
-							'active': false,
-							'messages': []
-						};
-						app.messageWindow.tabs.push(newTab);
-						app.messageWindow.activate(newTab.title);
-
-						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :joined the channel');
-					}
+					// add UI element tab for the channel
+					app.messageWindow.addTab(channel);
 				},
 				'regenerate': function () {
-
+					app.connection.ws.send('LIST');
+				},
+				'clear': function () {
+					this.channels = [];
 				}
 			}
 		});
@@ -485,6 +488,8 @@
 				this.tabs.push(serverTab);
 			},
 			'updated': function () {
+				if (!this.activeTab) return;
+
 				const msgList = this.$el.querySelector('[data-title="'+this.activeTab.title+'"] .messages');
 
 				msgList.scrollTop = msgList.clientHeight;
@@ -505,6 +510,36 @@
 							tab.active = false;
 						}
 					}
+				},
+				'addTab': function (channel, activate=true) {
+					const exists = this.tabs.find(o => o.title === channel);
+					if (exists) {
+						this.activate(channel);
+					} else {
+						const newTab = {
+							'title': channel,
+							'active': false,
+							'messages': []
+						};
+						this.tabs.push(newTab);
+						if (activate) this.activate(newTab.title);
+
+						this.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :joined the channel');
+					}
+				},
+				'closeTab': function (channel) {
+					app.connection.ws.send('PART '+channel);
+				},
+				'removeTab': function (channel) {
+					const index = this.tabs.findIndex(o => o.title === channel);
+
+					if (index > -1) {
+						this.tabs.splice(index, 1);
+					}
+
+					// set a new active tab
+					const lastTab = this.tabs[this.tabs.length-1];
+					this.activate(lastTab.title);
 				},
 				'formatDatetime': function (ts, mode) {
 					/* via https://gist.github.com/kmaida/6045266 */
@@ -576,7 +611,8 @@
 					this.ws.onmessage = this.onMessage;
 				},
 				'disconnect': function () {
-					app.sendMessage('/QUIT');
+					// app.sendMessage('/QUIT');
+					this.ws.send('QUIT');
 					// if the QUIT command works, no need to manually call close
 					// this.ws.close();
 				},
@@ -617,42 +653,96 @@
 
 					const data = (event.detail) ? event.detail : event.data;
 
+					app.messageLog.push(data);
 					const msg = app.parser.parse(data);
 
-					// handle ping
-					// if (event.data.toUpperCase().startsWith('PING')) {
+					// this can be overridden to display a message in a different tab
+					let targetTab = 'server';
+
+					console.info('cmd', msg.command, msg);
+
+					// handle ping/pong
 					if (msg.command && msg.command.toUpperCase() == 'PING') {
 						const messageParts = data.split(' ');
-						//console.log('replying with:', 'PONG '+messageParts[1]);
+						// console.log('replying with:', 'PONG '+messageParts[1]);
 						this.ws.send('PONG '+messageParts[1]);
 						return;
 					}
 
-					// if (event.data.startsWith(':'+server.url)) {
 					if (msg.prefix.isServer && msg.prefix.host == app.server.url) {
 						//console.warn('server message:', event.data);
+					}
 
-						if (msg.command == '372' || msg.command == '422') {
-							// message of the day, request initial LIST
-							this.ws.send('LIST');
-						}
+					if (msg.command == '376' || msg.command == '422') {
+						// message of the day, request initial LIST
+						this.ws.send('LIST');
+					}
 
-						if (msg.command == '322') {
-							// list items ("channels")
-							app.channelList.channels.push(msg.params[1]);
+					if (msg.command == '321') {
+						// list items ("channels"), begin list
+						app.channelList.clear();
+					}
+
+					if (msg.command == '322') {
+						// list items ("channels"), add to list
+						console.warn('add channel to list', msg.params);
+						app.channelList.channels.push(msg.params[1]);
+					}
+
+					if (msg.command == '323') {
+						// sort channel display after building list
+						if (app.channelList.channels.length > 0) {
+							app.channelList.channels.sort();
 						}
 					}
 
+					if (msg.command == '353') {
+						// list users in a channel when joining
+						
+						const users = msg.params[3].split(' ');
+						console.info('users in channel', msg.params[2], users);
+
+						const targetTab = (app.messageWindow.get(msg.params[2])) ? msg.params[2] : 'server';
+						// console.warn(targetTab, msg.params[2]);
+						if (users.length > 0) {
+							app.messageWindow.addMessage('Users in this channel are: '+users.join(', '), targetTab);
+						} else {
+							app.messageWindow.addMessage('No active users in this channel', targetTab);
+						}
+					}
+
+					if (msg.command == 'JOIN') {
+						// join a new channel
+						const tab = app.messageWindow.get(msg.params[0]);
+						if (tab) {
+							// console.warn('tab exists');
+							app.messageWindow.activate(msg.params[0]);
+						} else {
+							console.info('created new tab for', msg.params[0]);
+							app.messageWindow.addTab(msg.params[0], true);
+						}
+
+						// update the list as well
+						if (!app.channelList.channels.includes(msg.params[0])) {
+							app.channelList.channels.push(msg.params[0]);
+							app.channelList.channels.sort();
+						}
+					}
+
+					if (msg.command == 'PART') {
+						// part a channel
+						app.messageWindow.removeTab(msg.params[0]);
+					}
+
+					// channel privmsg etc
 					if (msg.params.length > 0 && msg.params[0].startsWith('#')) {
-						const targetTab = app.messageWindow.get(msg.params[0]);
-						msg.ts = Date.now();
-						console.log('msg', msg, '');
-						targetTab.messages.push(msg);
-					} else {
-						const serverTab = app.messageWindow.get('server');
-						msg.ts = Date.now();
-						serverTab.messages.push(msg);
+						targetTab = msg.params[0];	
 					}
+
+					let target = app.messageWindow.get(targetTab);
+					if (!target) target = app.messageWindow.get('server'); // fallback in case the tab no longer exists
+					msg.ts = Date.now();
+					target.messages.push(msg);
 				}
 			}
 		});
@@ -677,11 +767,27 @@
 			e.preventDefault();
 			const msgField = document.querySelector('#msg');
 
+			// add to input log for recent messages functionality
 			app.inputLog.unshift(msgField.value);
 			if (app.inputLog.length > 4) { app.inputLog.slice(0,4); }
 
-			// todo: get active channel here!
-			app.sendMessage(msgField.value, '#hsma');
+			// parse the input
+			const parsed = app.parser.parse(msgField.value);
+			if (parsed.command.startsWith('/')) {
+				parsed.command = parsed.command.substring(1).toUpperCase();
+			}
+			console.log('parsed input', parsed);
+
+			// todo: react to UI changes here?
+
+			const activeTab = app.messageWindow.activeTab.title;
+
+			// smart NAMES command in channels
+			if (parsed.command == 'NAMES' && activeTab !== 'server') {
+				msgField.value = '/'+parsed.command+' '+activeTab;
+			}
+
+			app.sendMessage(msgField.value, (activeTab == 'server') ? '' : activeTab);
 			msgField.value = '';
 		});
 
