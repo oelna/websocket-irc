@@ -4,6 +4,10 @@
 	<meta charset="utf-8" />
 	<title>IRC Client Demo</title>
 
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/3.0.1/css/primer.css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css" />-->
 	<style>
 
 		:root {
@@ -35,8 +39,10 @@
 
 		* { box-sizing: border-box; }
 		html {
-			font: 100%/1.4 -system-ui, Helvetica, Arial, sans-serif;
+			font: 100%/1.4 -system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 			background-color: var(--background-color);
+			-webkit-hyphens: auto;
+			hyphens: auto;
 		}
 
 		ul {
@@ -96,6 +102,28 @@
 			color: #0005;
 		}
 
+		.icon {
+			display: inline-block;
+			width: 1em;
+			height: 1em;
+		}
+
+		.icon.small {
+			font-size: 0.8em;
+		}
+
+		.icon.close {
+			background-color: currentColor;
+			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/x-circle-16.svg') no-repeat center;
+			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/x-circle-16.svg') no-repeat center;
+			-webkit-mask-size: contain;
+			mask-size: contain;
+		}
+
+		.icon.close:hover {
+			color: #000;
+		}
+
 		#app {
 			border: 0px solid #aaa;
 			background-color: #ffffff0a;
@@ -115,6 +143,7 @@
 			grid-column: 1 / 2;
 		}
 
+		/*
 		#connection-indicator::before {
 			content: "";
 			display: inline-block;
@@ -128,6 +157,19 @@
 
 		#connection-indicator.on::before {
 			background-color: rgb(52,199,89);
+		}
+		*/
+
+		#connection-indicator .icon.dot {
+			background-color: rgb(255,59,48);
+			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-16.svg') no-repeat center;
+			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-16.svg') no-repeat center;
+		}
+
+		#connection-indicator .icon.dot-fill {
+			background-color: rgb(52,199,89);
+			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-fill-16.svg') no-repeat center;
+			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-fill-16.svg') no-repeat center;
 		}
 
 		#channels {
@@ -172,6 +214,8 @@
 
 		#messages nav ul {
 			display: flex;
+			flex-wrap: wrap;
+			line-height: 1.65; /* magic number to make borders align nicely */
 		}
 
 		#messages nav a {
@@ -200,7 +244,7 @@
 
 		#messages .tab-content > li:not([data-title="server"]) .command,
 		#messages .tab-content > li:not([data-title="server"]) .target {
-			display: none;
+			/* display: none; */
 		}
 
 		#messages .tab-content .messages {
@@ -278,6 +322,8 @@
 
 		#userdata form p.input label {
 			flex-basis: 14ch;
+			-webkit-hyphens: none;
+			hyphens: none;
 		}
 
 		#userdata form p.input input[type="text"],
@@ -293,13 +339,83 @@
 			grid-row: 2;
 			grid-column: 3 / 4;
 		}
+
+		#dm .conversations > li {
+			padding: 0.2em 0 0.25em 0;
+		}
+
+		#dm .conversations > li + li {
+			border-top: 1px solid #ccc;
+		}
+
+		#dm .conversations h2 {
+			font-size: 1rem;
+		}
+
+		#dm .conversations a {
+			color: currentColor;
+			text-decoration: none;
+		}
+
+		#dm .conversations .messages li {
+			padding: 0.2em 0.3em 0.3em;
+			border-radius: 0.4em;
+			background-color: #ddd;
+			color: #000;
+			margin-bottom: 0.25em;
+			width: 80%;
+		}
+
+		#dm .conversations .messages li.self {
+			background-color: #007aff;
+			color: #fff;
+			margin-left: 20%;
+		}
+
+		#dm .conversations .messages li.them {
+			
+		}
+
+		#dm .conversations .messages time,
+		#dm .conversations .messages .prefix,
+		#dm .conversations .messages .command,
+		#dm .conversations .messages .target {
+			display: none;
+		}
+
+		#dm .conversations .messages .prefix::after {
+			content: ':';
+		}
+
+		#dm .conversations .messages,
+		#dm .conversations .input {
+			display: none;
+		}
+
+		#dm .conversations li.active .messages,
+		#dm .conversations li.active .input {
+			display: block;
+		}
+
+		#dm .unread-count {
+			display: inline-block;
+			font-size: 0.75em;
+			background: red;
+			color: #fff;
+			padding: 0 0.3em;
+			border-radius: 0.4em;
+		}
 	</style>
+
+	
 </head>
 <body>
 
 	<div id="app">
 		<nav id="main-nav">
-			<span id="connection-indicator" v-bind:class="connected ? 'on' : 'off'">{{ connected ? 'Connected' : 'Disconnected' }}</span> <button class="primary" v-on:click.prevent="toggleConnection">{{ connected ? 'Disconnect' : 'Connect' }}</button>
+			<span id="connection-indicator" v-bind:class="connected ? 'on' : 'off'">
+				<span v-if="!connected" class="icon dot small"></span>
+				<span v-if="connected" class="icon dot-fill small"></span> {{ connected ? 'Connected' : 'Disconnected' }}</span> <button class="primary" v-on:click.prevent="toggleConnection">{{ connected ? 'Disconnect' : 'Connect' }}</button>
 		</nav>
 		<div id="channels">
 			<h2>Available Channels</h2>
@@ -316,7 +432,7 @@
 				<nav class="tab-navigation">
 					<ul>
 						<li v-for="tab in tabs" v-bind:class="(tab.active) ? 'active' : ''">
-							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }} <span v-if="tab.title != 'server'" href="#close" v-on:click.prevent="closeTab(tab.title)">x</span></a> 
+							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}&nbsp;<span v-if="tab.title != 'server'" href="#close" v-on:click.prevent="closeTab(tab.title)" class="icon close small"></span></a> 
 							
 						</li>
 					</ul>
@@ -367,6 +483,30 @@
 
 			<p><a href="https://gist.github.com/xero/2d6e4b061b4ecbeb9f99">Detailed help</a></p>
 		</div>
+		<div id="dm">
+			<h2>Direct Messages <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
+			<!-- direct messages -->
+			<ul class="conversations">
+				<li v-for="conv in conversations" v-bind:class="(conv.active) ? 'active' : ''" v-bind:id="'dm-'+conv.title">
+					<h2><a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h2>
+
+					<ul class="messages">
+						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'">
+							<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
+							<span class="prefix">{{ msg.prefix.nick }}</span>
+							<span class="command">{{ msg.command }}</span>
+							<span class="target">{{ msg.params[0] }}</span>
+							<span class="params">{{ msg.params[1] }}</span>
+						</li>
+					</ul>
+
+					<form class="input" v-bind:id="'dm-'+conv.title+'-input'" v-on:submit.prevent="sendDM(conv.title, conv.input, $event)">
+						<input type="text" id="msg" placeholder="your message" autocomplete="off" v-model="conv.input" v-bind:maxlength="512 - conv.title.length - 'PRIVMSG'.length - 2" />
+						<input type="submit" value="Send" />
+					</form>
+				</li>
+			</ul>
+		</div>
 	</div>
 
 	<script type="module">
@@ -377,6 +517,7 @@
 			'parser': new Parser(),
 			'inputLog': [],
 			'messageLog': [],
+			'autoJoin': ['#html', '#int'],
 			'sendMessage': function (text, channel) {
 
 				if (text.startsWith('/') || !channel) {
@@ -393,6 +534,21 @@
 					
 					app.messageWindow.addMessage(text, channel);
 				}
+			},
+			'formatDatetime': function (ts, mode) {
+				/* via https://gist.github.com/kmaida/6045266 */
+				const d = new Date(ts);
+				const yyyy = d.getFullYear();
+				const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+				const dd = d.getDate().toString().padStart(2, '0');
+				const hh = d.getHours().toString().padStart(2, '0');
+				const min = d.getMinutes().toString().padStart(2, '0');
+				const sec = d.getSeconds().toString().padStart(2, '0');
+
+				const time = yyyy + '-' + mm + '-' + dd + ' ' + hh + ':' + min + ':' + sec;
+				const shorttime = hh + ':' + min;
+
+				return (mode && mode == 'short') ? shorttime : time;
 			}
 		};
 
@@ -469,6 +625,96 @@
 			}
 		});
 
+		app.dm = new Vue({
+			'el': '#dm',
+			'data': {
+				'history': 6,
+				'conversations': []
+			},
+			'computed': {
+				'getActive': function () {
+					return this.conversations.find(conv => conv.active === true);
+				},
+				'unreadMessages': function () {
+					const reducer = (unread, currentValue) => unread + currentValue.unread;
+					const unread = this.conversations.reduce(reducer, 0);
+					return unread;
+				}
+			},
+			'methods': {
+				'showConversation': function (user) {
+					let conv = this.get(user);
+					if (conv && conv.active == false) {
+						for (const c of this.conversations) {
+							c.active = false;
+						}
+						conv.active = true;
+						conv.unread = 0;
+					} else if (conv && conv.active == true) {
+						// toggle
+						conv.active = false;
+					}
+				},
+				'addMessage': function (user, msg) {
+					let conv = this.get(user);
+					if (!conv) {
+						// create a new conversation
+						const newConv = {
+							'title': user,
+							'active': false,
+							'messages': [],
+							'unread': 0
+						};
+						this.conversations.unshift(newConv);
+						conv = newConv;
+					}
+
+					conv.messages.push(msg);
+					if (conv.messages.length > this.history) {
+						conv.messages.shift();
+					}
+
+					if (msg.prefix.nick == user && !conv.active) {
+						conv.unread += 1;
+					}
+
+					// trigger event
+					const customEvent = new Event('newDM');
+					this.$el.dispatchEvent(customEvent);
+				},
+				'get': function (user) {
+					return this.conversations.find(tab => tab.title === user);
+				},
+				'sendDM': function (user, text, event) {
+					console.info('sending DM to user ', user, text);
+					if (text.startsWith('/') || user.length < 1) return;
+					const messageString = 'PRIVMSG '+user+' :'+text;
+					app.connection.ws.send(messageString);
+
+					const conv = this.get(user);
+					if (conv) {
+						conv.input = '';
+						if (event) {
+							event.target.querySelector('input[type="text"]').focus();
+						}
+
+						// make an artificial message to display
+						const msg = app.parser.parse(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 '+messageString);
+						msg.ts = Date.now();
+						this.addMessage(user, msg);
+					}
+				},
+				'formatDatetime': app.formatDatetime
+				/*
+				,'getActive2': function () {
+					const activeConversations = this.conversations.find(conv => conv.active === true);
+					console.warn('act', activeConversations);
+					return activeConversations ? activeConversations : [];
+				}
+				*/
+			}
+		});
+
 		app.messageWindow = new Vue({
 			'el': '#messages',
 			'data': {
@@ -541,21 +787,7 @@
 					const lastTab = this.tabs[this.tabs.length-1];
 					this.activate(lastTab.title);
 				},
-				'formatDatetime': function (ts, mode) {
-					/* via https://gist.github.com/kmaida/6045266 */
-					const d = new Date(ts);
-					const yyyy = d.getFullYear();
-					const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-					const dd = d.getDate().toString().padStart(2, '0');
-					const hh = d.getHours().toString().padStart(2, '0');
-					const min = d.getMinutes().toString().padStart(2, '0');
-					const sec = d.getSeconds().toString().padStart(2, '0');
-
-					const time = yyyy + '-' + mm + '-' + dd + ' ' + hh + ':' + min + ':' + sec;
-					const shorttime = hh + ':' + min + ':' + sec;
-
-					return (mode && mode == 'short') ? shorttime : time;
-				},
+				'formatDatetime': app.formatDatetime,
 				'msgType': function (message) {
 					// console.log('msg type', message);
 					if (message.prefix) {
@@ -676,6 +908,11 @@
 					if (msg.command == '376' || msg.command == '422') {
 						// message of the day, request initial LIST
 						this.ws.send('LIST');
+
+						// auto-join channels, if specified
+						if (app.autoJoin.length > 0) {
+							this.ws.send('JOIN '+app.autoJoin.join(','));
+						}
 					}
 
 					if (msg.command == '321') {
@@ -731,7 +968,20 @@
 
 					if (msg.command == 'PART') {
 						// part a channel
-						app.messageWindow.removeTab(msg.params[0]);
+						if (msg.prefix.nick == app.user.nick) {
+							// you left the channel, close tab
+							app.messageWindow.removeTab(msg.params[0]);
+						} else {
+							// somebody else left the channel
+						}
+					}
+
+					// direct messages eg. PRIVMSG to a single user
+					if (msg.command == 'PRIVMSG' && msg.params.length > 0 && !msg.params[0].startsWith('#')) {
+						console.info('received a DM by', msg.prefix.nick);
+						msg.ts = Date.now();
+						app.dm.addMessage(msg.prefix.nick, msg);
+						return;
 					}
 
 					// channel privmsg etc
@@ -785,6 +1035,13 @@
 			// smart NAMES command in channels
 			if (parsed.command == 'NAMES' && activeTab !== 'server') {
 				msgField.value = '/'+parsed.command+' '+activeTab;
+			}
+
+			// direct message shorthand with /w
+			if (parsed.command.toUpperCase() == 'W' && parsed.params[0].startsWith('@')) {
+				const recipient = parsed.params[0].substring(1);
+				const message = parsed.params.slice(1).join(' ');
+				msgField.value = '/PRIVMSG '+recipient+' '+message;
 			}
 
 			app.sendMessage(msgField.value, (activeTab == 'server') ? '' : activeTab);
