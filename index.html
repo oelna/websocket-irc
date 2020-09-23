@@ -102,6 +102,10 @@
 			color: #0005;
 		}
 
+		.hidden {
+			display: none;
+		}
+
 		.icon {
 			display: inline-block;
 			width: 1em;
@@ -247,6 +251,26 @@
 			/* display: none; */
 		}
 
+		#messages .tab-content .users li {
+			display: inline;
+			margin-right: 0.5em;
+		}
+
+		#messages .tab-content .users li a {
+			display: inline-block;
+			text-decoration: none;
+			color: #000;
+			background-color: #ddd;
+			border-radius: 0.2em;
+			padding: 0.1em 0.4em 0.15em;
+		}
+
+		#messages .tab-content .users .icon.oper {
+			background: url('https://raw.githubusercontent.com/primer/octicons/master/icons/verified-16.svg') no-repeat center;
+			vertical-align: text-bottom;
+			margin-right: 0.25em;
+		}
+
 		#messages .tab-content .messages {
 			padding-top: 1rem;
 			max-height: 60vh;
@@ -338,6 +362,15 @@
 			padding: 0.5rem;
 			grid-row: 2;
 			grid-column: 3 / 4;
+
+			display: none;
+		}
+
+		#dm {
+			border-top: 0.2rem solid #ccc;
+			padding: 0.5rem;
+			grid-row: 2;
+			grid-column: 3 / 4;
 		}
 
 		#dm .conversations > li {
@@ -357,8 +390,14 @@
 			text-decoration: none;
 		}
 
+		#dm .icon.discussion {
+			background: url('https://raw.githubusercontent.com/primer/octicons/master/icons/comment-discussion-16.svg') no-repeat center;
+			vertical-align: middle;
+		}
+
 		#dm .conversations .messages li {
-			padding: 0.2em 0.3em 0.3em;
+			font-size: 0.875em;
+			padding: 0.2em 0.45em 0.3em;
 			border-radius: 0.4em;
 			background-color: #ddd;
 			color: #000;
@@ -392,10 +431,16 @@
 			display: none;
 		}
 
-		#dm .conversations li.active .messages,
-		#dm .conversations li.active .input {
+		#dm .conversations li.active .messages {
 			display: block;
 		}
+
+		#dm .conversations li.active .input {
+			display: flex;
+		}
+
+		#dm .conversations li.active .input input[type="text"] { flex: 1; }
+		#dm .conversations li.active .input input[type="submit"] { flex: 0; }
 
 		#dm .unread-count {
 			display: inline-block;
@@ -439,12 +484,15 @@
 				</nav>
 				<ul class="tab-content">
 					<li v-for="tab in tabs" v-bind:data-title="tab.title" v-bind:class="(tab.active) ? 'active' : ''">
+						<ul class="users">
+							<li v-for="user in tab.users"><a href="#dm" v-on:click.prevent="newDM(user)"><span v-if="user.startsWith('@')" class="icon oper"></span>{{ user.replace('@', '') }}</a></li>
+						</ul>
 						<ul class="messages">
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
 								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
 								<span class="prefix">{{ !msg.prefix.isServer ? msg.prefix.nick : msg.prefix.host }}</span>
-								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''">{{ msg.command }}</span>
-								<span class="target">{{ msg.params[0] }}</span>
+								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.command }}</span>
+								<span class="target" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.params[0] }}</span>
 								<span class="params">{{ msg.params[1] }}</span>
 							</li>
 						</ul>
@@ -488,10 +536,10 @@
 			<!-- direct messages -->
 			<ul class="conversations">
 				<li v-for="conv in conversations" v-bind:class="(conv.active) ? 'active' : ''" v-bind:id="'dm-'+conv.title">
-					<h2><a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h2>
+					<h2><span class="icon discussion"></span> <a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h2>
 
 					<ul class="messages">
-						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'">
+						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'" v-bind:title="formatDatetime(msg.ts, 'short')">
 							<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
 							<span class="prefix">{{ msg.prefix.nick }}</span>
 							<span class="command">{{ msg.command }}</span>
@@ -642,7 +690,32 @@
 				}
 			},
 			'methods': {
+				'newConversation': function (user) {
+					if (user.startsWith('@')) user = user.substring(1);
+
+					for (const c of this.conversations) {
+						c.active = false;
+					}
+
+					let conv = this.get(user);
+					if (!conv) {
+						// create a new conversation
+						const newConv = {
+							'title': user,
+							'active': true,
+							'messages': [],
+							'unread': 0
+						};
+						this.conversations.unshift(newConv);
+					} else {
+						// simply bring the conversation to the foreground
+						conv.active = true;
+						conv.unread = 0;
+					}
+				},
 				'showConversation': function (user) {
+					if (user.startsWith('@')) user = user.substring(1);
+
 					let conv = this.get(user);
 					if (conv && conv.active == false) {
 						for (const c of this.conversations) {
@@ -656,6 +729,8 @@
 					}
 				},
 				'addMessage': function (user, msg) {
+					if (user.startsWith('@')) user = user.substring(1);
+
 					let conv = this.get(user);
 					if (!conv) {
 						// create a new conversation
@@ -683,9 +758,13 @@
 					this.$el.dispatchEvent(customEvent);
 				},
 				'get': function (user) {
+					if (user.startsWith('@')) user = user.substring(1);
+
 					return this.conversations.find(tab => tab.title === user);
 				},
 				'sendDM': function (user, text, event) {
+					if (user.startsWith('@')) user = user.substring(1);
+
 					console.info('sending DM to user ', user, text);
 					if (text.startsWith('/') || user.length < 1) return;
 					const messageString = 'PRIVMSG '+user+' :'+text;
@@ -729,7 +808,8 @@
 				const serverTab = {
 					'title': 'server',
 					'active': true,
-					'messages': []
+					'messages': [],
+					'users': []
 				};
 				this.tabs.push(serverTab);
 			},
@@ -765,12 +845,15 @@
 						const newTab = {
 							'title': channel,
 							'active': false,
-							'messages': []
+							'messages': [],
+							'users': []
 						};
 						this.tabs.push(newTab);
 						if (activate) this.activate(newTab.title);
 
+						/*
 						this.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :joined the channel');
+						*/
 					}
 				},
 				'closeTab': function (channel) {
@@ -825,6 +908,13 @@
 					customEvent.data = str+"\r\n";
 
 					app.connection.onMessage(customEvent);
+				},
+				'newDM': function (user) {
+					if (user.startsWith('@')) user = user.substring(1);
+
+					if (user == app.user.nick) return; // this is you, dummy!
+
+					app.dm.newConversation(user);
 				}
 			}
 		});
@@ -937,32 +1027,48 @@
 						// list users in a channel when joining
 						
 						const users = msg.params[3].split(' ');
+						users.sort();
 						console.info('users in channel', msg.params[2], users);
 
-						const targetTab = (app.messageWindow.get(msg.params[2])) ? msg.params[2] : 'server';
-						// console.warn(targetTab, msg.params[2]);
+						const tab = app.messageWindow.get(msg.params[2]);
+						if (tab.title != 'server') {
+							tab.users = users;
+						}
+
 						if (users.length > 0) {
-							app.messageWindow.addMessage('Users in this channel are: '+users.join(', '), targetTab);
+							/*
+							app.messageWindow.addMessage('Users in this channel are: '+users.join(', '), tab.title);
+							*/
 						} else {
-							app.messageWindow.addMessage('No active users in this channel', targetTab);
+							app.messageWindow.addMessage('No active users in this channel', tab.title);
 						}
 					}
 
 					if (msg.command == 'JOIN') {
+						
 						// join a new channel
 						const tab = app.messageWindow.get(msg.params[0]);
 						if (tab) {
-							// console.warn('tab exists');
-							app.messageWindow.activate(msg.params[0]);
+							if (msg.prefix.nick == app.user.nick) {
+								// you joined a channel
+								app.messageWindow.activate(msg.params[0]);
+							} else {
+								// somebody else joined a channel
+								if(tab.users.indexOf(msg.prefix.nick) === -1) {
+									tab.users.push(msg.prefix.nick);
+								}
+							}
 						} else {
 							console.info('created new tab for', msg.params[0]);
 							app.messageWindow.addTab(msg.params[0], true);
 						}
 
 						// update the list as well
-						if (!app.channelList.channels.includes(msg.params[0])) {
-							app.channelList.channels.push(msg.params[0]);
-							app.channelList.channels.sort();
+						if (msg.prefix.nick == app.user.nick) {
+							if (!app.channelList.channels.includes(msg.params[0])) {
+								app.channelList.channels.push(msg.params[0]);
+								app.channelList.channels.sort();
+							}
 						}
 					}
 
@@ -973,6 +1079,31 @@
 							app.messageWindow.removeTab(msg.params[0]);
 						} else {
 							// somebody else left the channel
+							const tab = app.messageWindow.get(msg.params[0]);
+							const index = tab.users.indexOf(msg.prefix.nick);
+							tab.users.splice(index, 1);
+							tab.users.sort();
+						}
+					}
+
+					// todo: react to nick changes: update UI across tabs and DMs
+					if (msg.command == 'NICK') {
+						console.warn(msg.prefix.nick, 'changed their nick to', msg.params[0]);
+					}
+
+					// handle QUIT, eg part from all channels correctly
+					// todo: maybe notify user with open DMs?
+					if (msg.command == 'QUIT') {
+						if (msg.prefix.nick != app.user.nick) {
+
+							// remove user from all message tabs
+							for (const tab of app.messageWindow.tabs) {
+								const pos = tab.users.indexOf(msg.prefix.nick);
+								if (pos !== -1) {
+									tab.users.splice(pos, 1);
+								}
+							}
+							console.info(msg.prefix.nick, 'logged off.');
 						}
 					}
 
