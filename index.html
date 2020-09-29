@@ -603,6 +603,12 @@
 			}
 		};
 
+		app.server = {
+			'protocol': 'wss',
+			'url': 'irc.arnorichter.de',
+			'port': 47363
+		}
+
 		const seed = Math.floor(Math.random()*100000+1);
 		app.user = new Vue({
 			'el': '#userdata',
@@ -611,8 +617,8 @@
 				'nick': 'guest_'+seed,
 				'realname': 'Unknown',
 				'connectionLock': false,
-				'serverurl': 'irc2.arnorichter.de',
-				'serverport': 43183
+				'serverurl': 'irc.arnorichter.de',
+				'serverport': 47363
 			},
 			'created': function () {
 				const userString = localStorage.getItem('user');
@@ -644,12 +650,6 @@
 				}
 			}
 		});
-
-		app.server = {
-			'protocol': 'wss',
-			'url': 'irc2.arnorichter.de',
-			'port': 43183
-		}
 
 		app.channelList = new Vue({
 			'el': '#channels',
@@ -927,7 +927,10 @@
 			},
 			'methods': {
 				'connect': function () {
+					const conn = 'wss://'+app.user.serverurl+':'+app.user.serverport;
 					this.ws = new WebSocket('wss://'+app.user.serverurl+':'+app.user.serverport);
+
+					console.log('connecting to', conn);
 
 					this.ws.onopen = this.onOpen;
 					this.ws.onerror = this.onError;
