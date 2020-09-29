@@ -489,7 +489,7 @@
 						</ul>
 						<ul class="messages">
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
-								<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
+								<time v-bind:datetime="formatDatetime(msg.tags.time)">{{ formatDatetime(msg.tags.time, 'short') }}</time>
 								<span class="prefix">{{ !msg.prefix.isServer ? msg.prefix.nick : msg.prefix.host }}</span>
 								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.command }}</span>
 								<span class="target" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.params[0] }}</span>
@@ -539,8 +539,8 @@
 					<h2><span class="icon discussion"></span> <a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h2>
 
 					<ul class="messages">
-						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'" v-bind:title="formatDatetime(msg.ts, 'short')">
-							<time v-bind:datetime="formatDatetime(msg.ts)">{{ formatDatetime(msg.ts, 'short') }}</time>
+						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'" v-bind:title="formatDatetime(msg.tags.time, 'short')">
+							<time v-bind:datetime="formatDatetime(msg.tags.time)">{{ formatDatetime(msg.tags.time, 'short') }}</time>
 							<span class="prefix">{{ msg.prefix.nick }}</span>
 							<span class="command">{{ msg.command }}</span>
 							<span class="target">{{ msg.params[0] }}</span>
@@ -580,11 +580,14 @@
 						return;
 					}
 					
-					app.messageWindow.addMessage(text, channel);
+					// app.messageWindow.addMessage(text, channel); // obsolete as per echo-message
 				}
 			},
 			'formatDatetime': function (ts, mode) {
 				/* via https://gist.github.com/kmaida/6045266 */
+
+				if (!ts) ts = Date.now();
+
 				const d = new Date(ts);
 				const yyyy = d.getFullYear();
 				const mm = (d.getMonth() + 1).toString().padStart(2, '0');
@@ -763,6 +766,10 @@
 					return this.conversations.find(tab => tab.title === user);
 				},
 				'sendDM': function (user, text, event) {
+					if (!app.mainNavigation.connected) {
+						console.error('You are not connected to a server!');
+						return;
+					}
 					if (user.startsWith('@')) user = user.substring(1);
 
 					console.info('sending DM to user ', user, text);
@@ -776,11 +783,6 @@
 						if (event) {
 							event.target.querySelector('input[type="text"]').focus();
 						}
-
-						// make an artificial message to display
-						const msg = app.parser.parse(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 '+messageString);
-						msg.ts = Date.now();
-						this.addMessage(user, msg);
 					}
 				},
 				'formatDatetime': app.formatDatetime
@@ -943,8 +945,16 @@
 					app.mainNavigation.connected = true;
 					app.user.connectionLock = true; // prevent changes to user data
 
+					this.ws.send('CAP LS 302');
 					this.ws.send('NICK '+app.user.nick);
 					this.ws.send('USER '+app.user.username+' 0 * :'+app.user.realname);
+					
+					// todo: do these as a reply to the list sent by the server
+					// https://unitedchat.org/ircv3
+					this.ws.send('CAP REQ :message-tags');
+					this.ws.send('CAP REQ :server-time');
+					this.ws.send('CAP REQ :echo-message');
+					this.ws.send('CAP END');
 				},
 				'onError': function (error) {
 					console.log('ERR: ', error);
@@ -1109,9 +1119,14 @@
 
 					// direct messages eg. PRIVMSG to a single user
 					if (msg.command == 'PRIVMSG' && msg.params.length > 0 && !msg.params[0].startsWith('#')) {
-						console.info('received a DM by', msg.prefix.nick);
-						msg.ts = Date.now();
-						app.dm.addMessage(msg.prefix.nick, msg);
+						console.info('received a DM from', msg.prefix.nick, 'to', msg.params[0]);
+						if (msg.params[0] == app.user.nick) {
+							// this is a message TO you
+							app.dm.addMessage(msg.prefix.nick, msg);
+						} else if (msg.prefix.nick == app.user.nick) {
+							// this is a message BY you
+							app.dm.addMessage(msg.params[0], msg);
+						}
 						return;
 					}
 
@@ -1122,7 +1137,6 @@
 
 					let target = app.messageWindow.get(targetTab);
 					if (!target) target = app.messageWindow.get('server'); // fallback in case the tab no longer exists
-					msg.ts = Date.now();
 					target.messages.push(msg);
 				}
 			}
