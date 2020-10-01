@@ -644,9 +644,9 @@
 
 					localStorage.setItem('user', JSON.stringify(data));
 
-					//console.log(this.username, this.realname, this.nick);
-					// app.connection.ws.send('USER '+this.username+' 0 * :'+this.realname);
-					app.connection.ws.send('NICK '+this.nick);
+					if (app.mainNavigation.connected) {
+						app.connection.ws.send('NICK '+this.nick);
+					}
 				}
 			}
 		});
@@ -961,6 +961,8 @@
 				},
 				'onError': function (error) {
 					console.log('ERR: ', error);
+
+					// todo: handle NICKNAMEISINUSE!
 				},
 				'onClose': function (event) {
 					console.log('INFO: Socket Closed');
