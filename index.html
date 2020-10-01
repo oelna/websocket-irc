@@ -251,6 +251,13 @@
 			/* display: none; */
 		}
 
+		#messages .tab-content time,
+		#messages .tab-content .prefix,
+		#messages .tab-content .command,
+		#messages .tab-content .target {
+			margin-right: 0.5ch;
+		}
+
 		#messages .tab-content .users li {
 			display: inline;
 			margin-right: 0.5em;
@@ -450,6 +457,8 @@
 			padding: 0 0.3em;
 			border-radius: 0.4em;
 		}
+
+		#connection { display: none; }
 	</style>
 
 	
@@ -472,7 +481,7 @@
 			</ul>
 		</div>
 		<div id="chats">
-			<div id="messages">
+			<div id="messages" ref="root">
 				<h2>Connected channels</h2>
 				<nav class="tab-navigation">
 					<ul>
@@ -531,7 +540,7 @@
 
 			<p><a href="https://gist.github.com/xero/2d6e4b061b4ecbeb9f99">Detailed help</a></p>
 		</div>
-		<div id="dm">
+		<div id="dm" ref="root">
 			<h2>Direct Messages <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
 			<!-- direct messages -->
 			<ul class="conversations">
@@ -557,8 +566,11 @@
 		</div>
 	</div>
 
+	<div id="connection">{{ ws.readyState }}</div>
+
 	<script type="module">
-		import Vue from './vue.esm.browser.js'; // replace with vue.esm.browser.min.js for production
+		// import Vue from './vue.esm.browser.js'; // replace with vue.esm.browser.min.js for production
+		import { createApp, ref } from './vue.esm-browser.js';
 		import { Parser } from './parser.js';
 
 		const app = {
@@ -610,15 +622,17 @@
 		}
 
 		const seed = Math.floor(Math.random()*100000+1);
-		app.user = new Vue({
-			'el': '#userdata',
-			'data': {
-				'username': 'guest_'+seed,
-				'nick': 'guest_'+seed,
-				'realname': 'Unknown',
-				'connectionLock': false,
-				'serverurl': 'irc.arnorichter.de',
-				'serverport': 47363
+		app.user = createApp({
+			// 'el': '#userdata',
+			'data': function () {
+				return {
+					'username': 'guest_'+seed,
+					'nick': 'guest_'+seed,
+					'realname': 'Unknown',
+					'connectionLock': false,
+					'serverurl': 'irc.arnorichter.de',
+					'serverport': 47363
+				}
 			},
 			'created': function () {
 				const userString = localStorage.getItem('user');
@@ -649,12 +663,14 @@
 					}
 				}
 			}
-		});
+		}).mount('#userdata');
 
-		app.channelList = new Vue({
-			'el': '#channels',
-			'data': {
-				'channels': []
+		app.channelList = createApp({
+			// 'el': '#channels',
+			'data': function () {
+				return {
+					'channels': []
+				}
 			},
 			'methods': {
 				'join': function (e, channel) {
@@ -674,13 +690,15 @@
 					this.channels = [];
 				}
 			}
-		});
+		}).mount('#channels');
 
-		app.dm = new Vue({
-			'el': '#dm',
-			'data': {
-				'history': 6,
-				'conversations': []
+		app.dm = createApp({
+			// 'el': '#dm',
+			'data': function () {
+				return {
+					'history': 6,
+					'conversations': []
+				}
 			},
 			'computed': {
 				'getActive': function () {
@@ -758,7 +776,10 @@
 
 					// trigger event
 					const customEvent = new Event('newDM');
-					this.$el.dispatchEvent(customEvent);
+					//const root = ref(0);
+					const root = this.$el.parentElement; // todo: fix this by using ref() ?
+
+					root.dispatchEvent(customEvent);
 				},
 				'get': function (user) {
 					if (user.startsWith('@')) user = user.substring(1);
@@ -794,12 +815,14 @@
 				}
 				*/
 			}
-		});
+		}).mount('#dm');
 
-		app.messageWindow = new Vue({
-			'el': '#messages',
-			'data': {
-				'tabs': []
+		app.messageWindow = createApp({
+			// 'el': '#messages',
+			'data': function () {
+				return {
+					'tabs': []
+				}
 			},
 			'computed': {
 				'activeTab': function () {
@@ -818,9 +841,14 @@
 			'updated': function () {
 				if (!this.activeTab) return;
 
-				const msgList = this.$el.querySelector('[data-title="'+this.activeTab.title+'"] .messages');
+				// todo: fix this by using ref() ?
+				//const root = ref(null);
+
+				const root = this.$el.parentElement;
+				const msgList = root.querySelector('[data-title="'+this.activeTab.title+'"] .messages');
 
 				msgList.scrollTop = msgList.clientHeight;
+				
 			},
 			'methods': {
 				'get': function (title) {
@@ -919,11 +947,13 @@
 					app.dm.newConversation(user);
 				}
 			}
-		});
+		}).mount('#messages');
 
-		app.connection = new Vue({
-			'data': {
-				'ws': null
+		app.connection = createApp({
+			'data': function () {
+				return {
+					'ws': null
+				}
 			},
 			'methods': {
 				'connect': function () {
@@ -1145,12 +1175,14 @@
 					target.messages.push(msg);
 				}
 			}
-		});
+		}).mount('#connection');
 
-		app.mainNavigation = new Vue({
-			'el': '#main-nav',
-			'data': {
-				'connected': false
+		app.mainNavigation = createApp({
+			// 'el': '#main-nav',
+			'data': function () {
+				return {
+					'connected': false
+				}
 			},
 			'methods': {
 				'toggleConnection': function () {
@@ -1161,7 +1193,7 @@
 					}
 				}
 			}
-		});
+		}).mount('#main-nav');
 
 		document.querySelector('#input').addEventListener('submit', function (e) {
 			e.preventDefault();
