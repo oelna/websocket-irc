@@ -6,500 +6,116 @@
 
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-	<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/3.0.1/css/primer.css" />
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css" />-->
-	<style>
+	<link rel="stylesheet" href="./main.css" />
 
-		:root {
-			color-scheme: light dark;
-
-			--color-mode: 'light';
-			--accent-primary: #007aff;
-			--accent-secondary: #eee;
-			--accent-tertiary: #c2e6c2;
-			--text-color: #222;
-			--background-color: #f4f4f4;
-			--selection-color: #ffd86b;
-		}
-
-		@media (prefers-color-scheme: dark) {
-			:root {
-				--color-mode: 'dark';
-			}
-
-			:root:not([data-theme]) {
-				--accent-primary: #007aff;
-				--accent-secondary: #2b2925;
-				--accent-tertiary: #242b24;
-				--text-color: #999;
-				--background-color: #161a1b;
-				--selection-color: #ffd86b;
-			}
-		}
-
-		* { box-sizing: border-box; }
-		html {
-			font: 100%/1.4 -system-ui, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-			background-color: var(--background-color);
-			-webkit-hyphens: auto;
-			hyphens: auto;
-		}
-
-		ul {
-			padding: 0;
-			margin: 0;
-		}
-
-		li {
-			list-style: none;
-		}
-
-		input {
-			font-size: 1rem;
-		}
-
-		h1, h2, h3 {
-			margin: 0 0 0.2em 0;
-		}
-
-		button,
-		a.button,
-		input[type="submit"],
-		input[type="button"] {
-			-webkit-appearance: none;
-			appearance: none;
-			border: 0;
-			font-size: 1rem;
-			background-color: var(--accent-primary);
-			color: #fffd;
-			padding: 0.2em 0.5em 0.25em;
-			border-radius: 0.2em;
-			cursor: pointer;
-		}
-
-		button:hover,
-		a.button:hover,
-		input[type="submit"]:hover,
-		input[type="button"]:hover,
-		button:focus,
-		a.button:focus,
-		input[type="submit"]:focus,
-		input[type="button"]:focus {
-			opacity: 0.9;
-		}
-
-		input[type="text"],
-		input[type="number"] {
-			font-size: 1rem;
-			border: 1px solid #9999;
-			background-color: transparent;
-			padding: 0.15em 0.2em 0.2em;
-			color: var(--text-color);
-		}
-
-		input[readonly] {
-			background-color: #9993;
-			color: #0005;
-		}
-
-		.hidden {
-			display: none;
-		}
-
-		.icon {
-			display: inline-block;
-			width: 1em;
-			height: 1em;
-		}
-
-		.icon.small {
-			font-size: 0.8em;
-		}
-
-		.icon.close {
-			background-color: currentColor;
-			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/x-circle-16.svg') no-repeat center;
-			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/x-circle-16.svg') no-repeat center;
-			-webkit-mask-size: contain;
-			mask-size: contain;
-		}
-
-		.icon.close:hover {
-			color: #000;
-		}
-
-		#app {
-			border: 0px solid #aaa;
-			background-color: #ffffff0a;
-			padding: 0.5rem;
-			display: grid;
-			grid-template-columns: 1fr 2fr 1fr;
-			/* grid-template-rows: 50px 100px; */
-			grid-gap: 1rem;
-			max-width: 140ch;
-			margin: 1rem auto;
-		}
-
-		#main-nav {
-			padding: 0 1em 1em 1em;
-			padding: 0.5rem;
-			grid-row: 1;
-			grid-column: 1 / 2;
-		}
-
-		/*
-		#connection-indicator::before {
-			content: "";
-			display: inline-block;
-			vertical-align: middle;
-			width: 0.5em;
-			height: 0.5em;
-			border-radius: 100%;
-			background-color: rgb(255,59,48);
-			margin-right: 0.5em;
-		}
-
-		#connection-indicator.on::before {
-			background-color: rgb(52,199,89);
-		}
-		*/
-
-		#connection-indicator .icon.dot {
-			background-color: rgb(255,59,48);
-			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-16.svg') no-repeat center;
-			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-16.svg') no-repeat center;
-		}
-
-		#connection-indicator .icon.dot-fill {
-			background-color: rgb(52,199,89);
-			-webkit-mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-fill-16.svg') no-repeat center;
-			mask: url('https://raw.githubusercontent.com/primer/octicons/master/icons/dot-fill-16.svg') no-repeat center;
-		}
-
-		#channels {
-			border-top: 0 solid #ccc;
-			padding: 0.5rem;
-			grid-row: 1;
-			grid-column: 2 / 3;
-		}
-
-		#channels li {
-			display: inline;
-			margin-right: 0.5ch;
-		}
-
-		#channels a {
-			display: inline-block;
-			text-decoration: none;
-			color: #000;
-			background-color: #ddd;
-			border-radius: 0.2em;
-			padding: 0.1em 0.4em 0.15em;
-		}
-
-		#channels a:hover,
-		#channels a:focus {
-			text-decoration: underline;
-		}
-
-		#chats {
-			grid-row: 2;
-			grid-column: 2 / 3;
-		}
-
-		#messages {
-			border-top: 0.2rem solid #ccc;
-			padding: 0.5rem;
-		}
-
-		#messages nav {
-			margin-bottom: 0.5em;
-		}
-
-		#messages nav ul {
-			display: flex;
-			flex-wrap: wrap;
-			line-height: 1.65; /* magic number to make borders align nicely */
-		}
-
-		#messages nav a {
-			background: #eee;
-			color: #0007;
-			text-decoration: none;
-			padding: 0.2em 0.5em 0.25em;
-			border: 1px solid #eee;
-			border-bottom: 1px solid #ccc;
-		}
-
-		#messages nav .active a {
-			color: var(--text-color);
-			background: transparent;
-			border: 1px solid #ccc;
-			border-bottom-color: transparent;
-		}
-
-		#messages .tab-content > li:not(.active) {
-			display: none;
-		}
-
-		#messages .tab-content li .prefix::after {
-			content: ':';
-		}
-
-		#messages .tab-content > li:not([data-title="server"]) .command,
-		#messages .tab-content > li:not([data-title="server"]) .target {
-			/* display: none; */
-		}
-
-		#messages .tab-content time,
-		#messages .tab-content .prefix,
-		#messages .tab-content .command,
-		#messages .tab-content .target {
-			margin-right: 0.5ch;
-		}
-
-		#messages .tab-content .users li {
-			display: inline;
-			margin-right: 0.5em;
-		}
-
-		#messages .tab-content .users li a {
-			display: inline-block;
-			text-decoration: none;
-			color: #000;
-			background-color: #ddd;
-			border-radius: 0.2em;
-			padding: 0.1em 0.4em 0.15em;
-		}
-
-		#messages .tab-content .users .icon.oper {
-			background: url('https://raw.githubusercontent.com/primer/octicons/master/icons/verified-16.svg') no-repeat center;
-			vertical-align: text-bottom;
-			margin-right: 0.25em;
-		}
-
-		#messages .tab-content .messages {
-			padding-top: 1rem;
-			max-height: 60vh;
-			overflow-y: scroll;
-			overflow-x: hidden;
-		}
-
-		#messages .tab-content .messages li {
-			padding: 0.1em 0;
-			overflow-wrap: break-word;
-			word-break: break-all; 
-		}
-
-		#messages .tab-content .messages li + li {
-			border-top: 1px solid #eee;
-		}
-
-		#messages .tab-content .messages li.error {
-			background: red;
-			border-top-color: #ccc;
-		}
-
-		#messages .tab-content .messages li.self {
-			/* chat message you sent */
-			color: var(--accent-primary);
-		}
-
-		#messages .tab-content .messages li.mention {
-			/* chat message that mentions your nickname */
-			background: #4396f13b;
-			color: #fff;
-		}
-
-		#messages .tab-content .messages li.pm {
-			/* chat message by a normal user */
-		}
-
-		#messages .tab-content .messages li span,
-		#messages .tab-content .messages li time {
-			
-		}
-
-		#messages .tab-content .messages li time {
-			
-		}
-
-		#input {
-			border-top: 1px solid #ccc;
-			padding: 0.5rem;
-			display: flex;
-		}
-
-		#input input[type="text"],
-		#input textarea { flex: 1; }
-		#input input[type="submit"] { flex: 0 0 8ch; margin-left: 1em; }
-
-		#userdata {
-			border-top: 0.2rem solid #ccc;
-			padding: 0.5rem;
-			grid-row: 2;
-			grid-column: 1 / 2;
-		}
-
-		#userdata form label {
-			display: inline-block;
-			
-			margin-right: 0.5em;
-		}
-
-		#userdata form p.input {
-			display: flex;
-		}
-
-		#userdata form p.input label {
-			flex-basis: 14ch;
-			-webkit-hyphens: none;
-			hyphens: none;
-		}
-
-		#userdata form p.input input[type="text"],
-		#userdata form p.input input[type="number"] {
-			flex: 1;
-			border: 0;
-			border-bottom: 1px solid #9993;
-		}
-
-		#help {
-			border-top: 0.2rem solid #ccc;
-			padding: 0.5rem;
-			grid-row: 2;
-			grid-column: 3 / 4;
-
-			display: none;
-		}
-
-		#dm {
-			border-top: 0.2rem solid #ccc;
-			padding: 0.5rem;
-			grid-row: 2;
-			grid-column: 3 / 4;
-		}
-
-		#dm .conversations > li {
-			padding: 0.2em 0 0.25em 0;
-		}
-
-		#dm .conversations > li + li {
-			border-top: 1px solid #ccc;
-		}
-
-		#dm .conversations h2 {
-			font-size: 1rem;
-		}
-
-		#dm .conversations a {
-			color: currentColor;
-			text-decoration: none;
-		}
-
-		#dm .icon.discussion {
-			background: url('https://raw.githubusercontent.com/primer/octicons/master/icons/comment-discussion-16.svg') no-repeat center;
-			vertical-align: middle;
-		}
-
-		#dm .conversations .messages li {
-			font-size: 0.875em;
-			padding: 0.2em 0.45em 0.3em;
-			border-radius: 0.4em;
-			background-color: #ddd;
-			color: #000;
-			margin-bottom: 0.25em;
-			width: 80%;
-		}
-
-		#dm .conversations .messages li.self {
-			background-color: #007aff;
-			color: #fff;
-			margin-left: 20%;
-		}
-
-		#dm .conversations .messages li.them {
-			
-		}
-
-		#dm .conversations .messages time,
-		#dm .conversations .messages .prefix,
-		#dm .conversations .messages .command,
-		#dm .conversations .messages .target {
-			display: none;
-		}
-
-		#dm .conversations .messages .prefix::after {
-			content: ':';
-		}
-
-		#dm .conversations .messages,
-		#dm .conversations .input {
-			display: none;
-		}
-
-		#dm .conversations li.active .messages {
-			display: block;
-		}
-
-		#dm .conversations li.active .input {
-			display: flex;
-		}
-
-		#dm .conversations li.active .input input[type="text"] { flex: 1; }
-		#dm .conversations li.active .input input[type="submit"] { flex: 0; }
-
-		#dm .unread-count {
-			display: inline-block;
-			font-size: 0.75em;
-			background: red;
-			color: #fff;
-			padding: 0 0.3em;
-			border-radius: 0.4em;
-		}
-
-		#connection { display: none; }
-	</style>
-
-	
+	<script type="module" src="./script.js" defer></script>
 </head>
 <body>
 
+	<!-- iconset octicons -->
+	<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+
+		<symbol id="x-circle" viewBox="0 0 16 16" fill="currentColor">
+			<title>Circled closing X</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M3.404 12.596a6.5 6.5 0 119.192-9.192 6.5 6.5 0 01-9.192 9.192zM2.344 2.343a8 8 0 1011.313 11.314A8 8 0 002.343 2.343zM6.03 4.97a.75.75 0 00-1.06 1.06L6.94 8 4.97 9.97a.75.75 0 101.06 1.06L8 9.06l1.97 1.97a.75.75 0 101.06-1.06L9.06 8l1.97-1.97a.75.75 0 10-1.06-1.06L8 6.94 6.03 4.97z"/>
+		</symbol>
+
+		<symbol id="dot" viewBox="0 0 16 16" fill="currentColor">
+			<title>Ring</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM4 8a4 4 0 118 0 4 4 0 01-8 0z"/>
+		</symbol>
+
+		<symbol id="dot-fill" viewBox="0 0 16 16" fill="currentColor">
+			<title>Dot</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"/>
+		</symbol>
+
+		<symbol id="arrow-switch" viewBox="0 0 16 16" fill="currentColor">
+			<title>Back and forward arrows</title>
+			<desc></desc>
+			<path d="M5.22 14.78a.75.75 0 001.06-1.06L4.56 12h8.69a.75.75 0 000-1.5H4.56l1.72-1.72a.75.75 0 00-1.06-1.06l-3 3a.75.75 0 000 1.06l3 3zm5.56-6.5a.75.75 0 11-1.06-1.06l1.72-1.72H2.75a.75.75 0 010-1.5h8.69L9.72 2.28a.75.75 0 011.06-1.06l3 3a.75.75 0 010 1.06l-3 3z"/>
+		</symbol>
+
+		<symbol id="verified" viewBox="0 0 16 16" fill="currentColor">
+			<title>Verified checkmark</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M9.585.52a2.678 2.678 0 00-3.17 0l-.928.68a1.178 1.178 0 01-.518.215L3.83 1.59a2.678 2.678 0 00-2.24 2.24l-.175 1.14a1.178 1.178 0 01-.215.518l-.68.928a2.678 2.678 0 000 3.17l.68.928c.113.153.186.33.215.518l.175 1.138a2.678 2.678 0 002.24 2.24l1.138.175c.187.029.365.102.518.215l.928.68a2.678 2.678 0 003.17 0l.928-.68a1.17 1.17 0 01.518-.215l1.138-.175a2.678 2.678 0 002.241-2.241l.175-1.138c.029-.187.102-.365.215-.518l.68-.928a2.678 2.678 0 000-3.17l-.68-.928a1.179 1.179 0 01-.215-.518L14.41 3.83a2.678 2.678 0 00-2.24-2.24l-1.138-.175a1.179 1.179 0 01-.518-.215L9.585.52zM7.303 1.728c.415-.305.98-.305 1.394 0l.928.68c.348.256.752.423 1.18.489l1.136.174c.51.078.909.478.987.987l.174 1.137c.066.427.233.831.489 1.18l.68.927c.305.415.305.98 0 1.394l-.68.928a2.678 2.678 0 00-.489 1.18l-.174 1.136a1.178 1.178 0 01-.987.987l-1.137.174a2.678 2.678 0 00-1.18.489l-.927.68c-.415.305-.98.305-1.394 0l-.928-.68a2.678 2.678 0 00-1.18-.489l-1.136-.174a1.178 1.178 0 01-.987-.987l-.174-1.137a2.678 2.678 0 00-.489-1.18l-.68-.927a1.178 1.178 0 010-1.394l.68-.928c.256-.348.423-.752.489-1.18l.174-1.136c.078-.51.478-.909.987-.987l1.137-.174a2.678 2.678 0 001.18-.489l.927-.68zM11.28 6.78a.75.75 0 00-1.06-1.06L7 8.94 5.78 7.72a.75.75 0 00-1.06 1.06l1.75 1.75a.75.75 0 001.06 0l3.75-3.75z"/>
+		</symbol>
+
+		<symbol id="sync" viewBox="0 0 16 16" fill="currentColor">
+			<title>Sync arrows</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.001 7.001 0 0114.95 7.16a.75.75 0 11-1.49.178A5.501 5.501 0 008 2.5zM1.705 8.005a.75.75 0 01.834.656 5.501 5.501 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.001 7.001 0 011.05 8.84a.75.75 0 01.656-.834z"/>
+		</symbol>
+
+		<symbol id="visible" viewBox="0 0 16 16" fill="currentColor">
+			<title>Visible</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M1.679 7.932c.412-.621 1.242-1.75 2.366-2.717C5.175 4.242 6.527 3.5 8 3.5c1.473 0 2.824.742 3.955 1.715 1.124.967 1.954 2.096 2.366 2.717a.119.119 0 010 .136c-.412.621-1.242 1.75-2.366 2.717C10.825 11.758 9.473 12.5 8 12.5c-1.473 0-2.824-.742-3.955-1.715C2.92 9.818 2.09 8.69 1.679 8.068a.119.119 0 010-.136zM8 2c-1.981 0-3.67.992-4.933 2.078C1.797 5.169.88 6.423.43 7.1a1.619 1.619 0 000 1.798c.45.678 1.367 1.932 2.637 3.024C4.329 13.008 6.019 14 8 14c1.981 0 3.67-.992 4.933-2.078 1.27-1.091 2.187-2.345 2.637-3.023a1.619 1.619 0 000-1.798c-.45-.678-1.367-1.932-2.637-3.023C11.671 2.992 9.981 2 8 2zm0 8a2 2 0 100-4 2 2 0 000 4z"/>
+		</symbol>
+
+		<symbol id="invisible" viewBox="0 0 16 16" fill="currentColor">
+			<title>Invisible</title>
+			<desc></desc>
+			<path fill-rule="evenodd" d="M.143 2.31a.75.75 0 011.047-.167l14.5 10.5a.75.75 0 11-.88 1.214l-2.248-1.628C11.346 13.19 9.792 14 8 14c-1.981 0-3.67-.992-4.933-2.078C1.797 10.832.88 9.577.43 8.9a1.618 1.618 0 010-1.797c.353-.533.995-1.42 1.868-2.305L.31 3.357A.75.75 0 01.143 2.31zm3.386 3.378a14.21 14.21 0 00-1.85 2.244.12.12 0 00-.022.068c0 .021.006.045.022.068.412.621 1.242 1.75 2.366 2.717C5.175 11.758 6.527 12.5 8 12.5c1.195 0 2.31-.488 3.29-1.191L9.063 9.695A2 2 0 016.058 7.52l-2.53-1.832zM8 3.5c-.516 0-1.017.09-1.499.251a.75.75 0 11-.473-1.423A6.23 6.23 0 018 2c1.981 0 3.67.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.619 1.619 0 010 1.798c-.11.166-.248.365-.41.587a.75.75 0 11-1.21-.887c.148-.201.272-.382.371-.53a.119.119 0 000-.137c-.412-.621-1.242-1.75-2.366-2.717C10.825 4.242 9.473 3.5 8 3.5z"/>
+		</symbol>
+	</svg>
+
 	<div id="app">
-		<nav id="main-nav">
-			<span id="connection-indicator" v-bind:class="connected ? 'on' : 'off'">
-				<span v-if="!connected" class="icon dot small"></span>
-				<span v-if="connected" class="icon dot-fill small"></span> {{ connected ? 'Connected' : 'Disconnected' }}</span> <button class="primary" v-on:click.prevent="toggleConnection">{{ connected ? 'Disconnect' : 'Connect' }}</button>
-		</nav>
+		<div id="server">
+			<form>
+				<p class="input">
+					<label for="server-url">Server URL
+						<svg id="connection-indicator" class="icon" v-bind:class="connected ? 'on' : 'off'" v-bind:title="connected ? 'Connected' : 'Disconnected'"><use v-if="connected" xlink:href="#dot-fill" /><use v-if="!connected" xlink:href="#dot" /></svg>
+					</label>
+					<input type="text" id="server-url" placeholder="irc.unrealircd.org" v-model="url" v-bind:readonly="connected" required />
+				</p>
+				<p class="input">
+					<label for="server-port">WSS Port</label>
+					<input type="number" id="server-port" placeholder="443" v-model="port" v-bind:readonly="connected" required />
+				</p>
+
+				<button class="primary" v-on:click.prevent="toggleConnection">{{ connected ? 'Disconnect' : 'Connect' }}</button>
+			</form>
+		</div>
 		<div id="channels">
-			<h2>Available Channels</h2>
-			<ul>
-				<li v-if="channels.length < 1">No active channels</li>
-				<li v-for="channel in channels">
-					<a v-bind:href="channel" v-on:click.prevent="join($event,channel)">{{ channel }}</a>
-				</li>
-			</ul>
+			<h2 v-on:click="this.visible = (this.visible) ? false : true;">Available Channels <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
+			<div v-if="this.visible">
+				<ul class="list">
+					<li v-if="channels.length < 1">No active channels</li>
+					<li v-for="channel in channels">
+						<a v-bind:href="channel" v-on:click.prevent="join($event,channel)">{{ channel }}</a>
+					</li>
+				</ul>
+				<nav>
+					<a id="refresh-channels" href="#refresh" class="button secondary" v-on:click.prevent="refresh">
+						<svg class="icon"><use xlink:href="#sync" /></svg>
+					</a>
+				</nav>
+			</div>
 		</div>
 		<div id="chats">
 			<div id="messages" ref="root">
-				<h2>Connected channels</h2>
-				<nav class="tab-navigation">
+				<h2 v-on:click="this.visible = !this.visible">Connected channels <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
+				<nav class="tab-navigation" v-if="this.visible">
 					<ul>
 						<li v-for="tab in tabs" v-bind:class="(tab.active) ? 'active' : ''">
-							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}&nbsp;<span v-if="tab.title != 'server'" href="#close" v-on:click.prevent="closeTab(tab.title)" class="icon close small"></span></a> 
-							
+							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}&nbsp;<svg class="icon close" v-if="tab.title != 'server'" v-on:click="closeTab(tab.title)"><use xlink:href="#x-circle" /></svg></a>
 						</li>
 					</ul>
 				</nav>
-				<ul class="tab-content">
+				<ul class="tab-content" v-if="this.visible">
 					<li v-for="tab in tabs" v-bind:data-title="tab.title" v-bind:class="(tab.active) ? 'active' : ''">
 						<ul class="users">
-							<li v-for="user in tab.users"><a href="#dm" v-on:click.prevent="newDM(user)"><span v-if="user.startsWith('@')" class="icon oper"></span>{{ user.replace('@', '') }}</a></li>
+							<li v-for="user in tab.users"><a href="#dm" v-on:click.prevent="newDM(user)" title="Send a private message to this user"><svg v-if="user.startsWith('@')" class="icon discussion"><use xlink:href="#verified" /></svg> {{ user.replace('@', '') }}</a></li>
 						</ul>
 						<ul class="messages">
 							<li v-for="msg in tab.messages" v-bind:class="[(msg.command == 'ERROR') ? 'error' : '', msgType(msg)]">
 								<time v-bind:datetime="formatDatetime(msg.tags.time)">{{ formatDatetime(msg.tags.time, 'short') }}</time>
-								<span class="prefix">{{ !msg.prefix.isServer ? msg.prefix.nick : msg.prefix.host }}</span>
+								<span class="prefix">{{ (msg.prefix) ? ((!msg.prefix.isServer) ? msg.prefix.nick : (msg.prefix.host) ? msg.prefix.host : 'Server') : 'Server' }}</span>
 								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.command }}</span>
 								<span class="target" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.params[0] }}</span>
 								<span class="params">{{ msg.params[1] }}</span>
@@ -508,44 +124,47 @@
 					</li>
 				</ul>
 			</div>
-			<form id="input">
-				<input type="text" id="msg" placeholder="your message" autocomplete="off" />
-				<input type="submit" value="Send" />
+
+			<form id="input" v-if="this.visible">
+				<input type="text" id="msg" placeholder="your message" autocomplete="off" v-model="input" v-on:keyup="keyUp($event)" ref="msgField" />
+				<input type="submit" value="Send" v-on:click.prevent="send" />
 			</form>
+
+			<div class="help" v-if="this.visible">
+				<h2 v-on:click="this.showHelp = !this.showHelp">Help <svg class="icon visible" v-if="this.showHelp"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.showHelp"><use xlink:href="#invisible" /></svg></h2>
+				<div class="help-content" v-if="showHelp">
+					<h3>Commands</h3>
+			
+					<dl>
+						<dt>/JOIN #&lt;channel&gt;</dt><dd>Join or create a channel</dd>
+						<dt>/PART #&lt;channel&gt;</dt><dd>Leave a channel</dd>
+						<dt>/MSG &lt;target&gt; :message</dt><dd>Send a message. Target can be a #channel or a @user</dd>
+						<dt>/NICK &lt;nickname&gt;</dt><dd>Change your nickname</dd>
+						<dt>/WHOIS &lt;nickname&gt;</dt><dd>Get info on a user by their nickname</dd>
+						<dt>/MODE #&lt;channel&gt; +o &lt;nickname&gt;</dt><dd>Give a user channel moderator privileges</dd>
+					</dl>
+
+					<p><a href="https://gist.github.com/xero/2d6e4b061b4ecbeb9f99">Detailed help</a></p>
+				</div>
+			</div>
 		</div>
 		<div id="userdata">
-			<h2>User data</h2>
-			<form>
-				<p class="input"><label for="user-name">username</label><input type="text" id="user-name" placeholder="your username" v-bind:value="username" v-bind:readonly="connectionLock" required /></p>
-				<p class="input"><label for="user-realname">real name</label><input type="text" id="user-realname" placeholder="your real name" v-bind:value="realname" v-bind:readonly="connectionLock" required /></p>
-				<p class="input"><label for="user-nick">nickname</label><input type="text" id="user-nick" placeholder="your nickname" v-bind:value="nick" required /></p>
-				<p class="input"><input type="submit" value="Save" v-on:click.prevent="save" /></p>
-				<p>Please note: For changes to username or real name to happen, you need to disconnect from the IRC server.</p>
-
-				<p class="input"><label for="server-url">Server URL</label><input type="text" id="server-url" placeholder="irc.unrealircd.org" v-model="serverurl" v-bind:readonly="connectionLock" required /></p>
-				<p class="input"><label for="server-port">Websocket Port</label><input type="number" id="server-port" placeholder="443" v-model="serverport" v-bind:readonly="connectionLock" required /></p>
+			<h2 v-on:click="this.visible = (this.visible) ? false : true;">User data <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
+			<form v-if="this.visible">
+				<p class="input"><label for="user-name">username</label><input type="text" id="user-name" placeholder="your username" v-model="username" v-bind:readonly="lockInput" required /></p>
+				<p class="input"><label for="user-realname">real name</label><input type="text" id="user-realname" placeholder="your real name" v-model="realname" v-bind:readonly="lockInput" required /></p>
+				<p class="input"><label for="user-nick">nickname</label><input type="text" id="user-nick" placeholder="your nickname" v-model="nick" required /></p>
+				<p class="input"><input type="submit" value="Save" v-on:click.prevent="updateNick" class="secondary" /></p>
+				<p>For changes to username or real name to happen, you need to disconnect from the IRC server.</p>
+				<button v-on:click.prevent="toggleTheme" class="secondary">Color Theme</button>
 			</form>
 		</div>
-		<div id="help">
-			<h2>Commands</h2>
-			
-			<ul>
-				<li>/JOIN #&lt;channel&gt;</li>
-				<li>/PART #&lt;channel&gt;</li>
-				<li>/MSG &lt;target&gt; :message</li>
-				<li>/NICK &lt;nickname&gt;</li>
-				<li>/WHOIS &lt;nickname&gt;</li>
-				<li>/MODE #&lt;channel&gt; +o &lt;nickname&gt;</li>
-			</ul>
-
-			<p><a href="https://gist.github.com/xero/2d6e4b061b4ecbeb9f99">Detailed help</a></p>
-		</div>
 		<div id="dm" ref="root">
-			<h2>Direct Messages <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
+			<h2 v-on:click="this.visible = (this.visible) ? false : true;">Direct Messages <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg> <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
 			<!-- direct messages -->
-			<ul class="conversations">
+			<ul class="conversations" v-if="this.visible">
 				<li v-for="conv in conversations" v-bind:class="(conv.active) ? 'active' : ''" v-bind:id="'dm-'+conv.title">
-					<h2><span class="icon discussion"></span> <a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h2>
+					<h3><svg class="icon discussion"><use xlink:href="#arrow-switch" /></svg> <a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h3>
 
 					<ul class="messages">
 						<li v-for="msg in conv.messages" v-bind:class="(msg.prefix.nick !== conv.title) ? 'self' : 'them'" v-bind:title="formatDatetime(msg.tags.time, 'short')">
@@ -566,721 +185,26 @@
 		</div>
 	</div>
 
-	<div id="connection">{{ ws.readyState }}</div>
-
-	<script type="module">
-		// import Vue from './vue.esm.browser.js'; // replace with vue.esm.browser.min.js for production
-		import { createApp, ref } from './vue.esm-browser.js';
-		import { Parser } from './parser.js';
-
-		const app = {
-			'parser': new Parser(),
-			'inputLog': [],
-			'messageLog': [],
-			'autoJoin': ['#html', '#int'],
-			'sendMessage': function (text, channel) {
-
-				if (text.startsWith('/') || !channel) {
-					app.connection.ws.send(text.substring(1)+"\r\n");
-				} else {
-					channel = (channel.startsWith('#')) ? channel : '#'+channel;
-					app.connection.ws.send('PRIVMSG '+channel+' :'+text+"\r\n");
-
-					const tab = app.messageWindow.get(channel);
-					if (!tab) {
-						console.error('You can\'t talk here, you need to join a channel first!');
-						return;
-					}
-					
-					// app.messageWindow.addMessage(text, channel); // obsolete as per echo-message
-				}
-			},
-			'formatDatetime': function (ts, mode) {
-				/* via https://gist.github.com/kmaida/6045266 */
-
-				if (!ts) ts = Date.now();
-
-				const d = new Date(ts);
-				const yyyy = d.getFullYear();
-				const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-				const dd = d.getDate().toString().padStart(2, '0');
-				const hh = d.getHours().toString().padStart(2, '0');
-				const min = d.getMinutes().toString().padStart(2, '0');
-				const sec = d.getSeconds().toString().padStart(2, '0');
-
-				const time = yyyy + '-' + mm + '-' + dd + ' ' + hh + ':' + min + ':' + sec;
-				const shorttime = hh + ':' + min;
-
-				return (mode && mode == 'short') ? shorttime : time;
-			}
-		};
-
-		app.server = {
-			'protocol': 'wss',
-			'url': 'irc.arnorichter.de',
-			'port': 47363
-		}
-
-		const seed = Math.floor(Math.random()*100000+1);
-		app.user = createApp({
-			// 'el': '#userdata',
-			'data': function () {
-				return {
-					'username': 'guest_'+seed,
-					'nick': 'guest_'+seed,
-					'realname': 'Unknown',
-					'connectionLock': false,
-					'serverurl': 'irc.arnorichter.de',
-					'serverport': 47363
-				}
-			},
-			'created': function () {
-				const userString = localStorage.getItem('user');
-				if (userString) {					
-					const user = JSON.parse(userString);
-
-					this.username = user.username;
-					this.realname = user.realname;
-					this.nick = user.nickname;
-				}
-			},
-			'methods': {
-				'save': function () {
-					const data = {
-						'username': document.querySelector('#user-name').value,
-						'realname': document.querySelector('#user-realname').value,
-						'nickname': document.querySelector('#user-nick').value
-					}
-
-					this.username = data.username;
-					this.realname = data.realname;
-					this.nick = data.nickname;
-
-					localStorage.setItem('user', JSON.stringify(data));
-
-					if (app.mainNavigation.connected) {
-						app.connection.ws.send('NICK '+this.nick);
-					}
-				}
-			}
-		}).mount('#userdata');
-
-		app.channelList = createApp({
-			// 'el': '#channels',
-			'data': function () {
-				return {
-					'channels': []
-				}
-			},
-			'methods': {
-				'join': function (e, channel) {
-
-					if (app.connection.ws === null) return;
-
-					console.log('joining channel', channel);
-					app.connection.ws.send('JOIN '+channel);
-
-					// add UI element tab for the channel
-					app.messageWindow.addTab(channel);
-				},
-				'regenerate': function () {
-					app.connection.ws.send('LIST');
-				},
-				'clear': function () {
-					this.channels = [];
-				}
-			}
-		}).mount('#channels');
-
-		app.dm = createApp({
-			// 'el': '#dm',
-			'data': function () {
-				return {
-					'history': 6,
-					'conversations': []
-				}
-			},
-			'computed': {
-				'getActive': function () {
-					return this.conversations.find(conv => conv.active === true);
-				},
-				'unreadMessages': function () {
-					const reducer = (unread, currentValue) => unread + currentValue.unread;
-					const unread = this.conversations.reduce(reducer, 0);
-					return unread;
-				}
-			},
-			'methods': {
-				'newConversation': function (user) {
-					if (user.startsWith('@')) user = user.substring(1);
-
-					for (const c of this.conversations) {
-						c.active = false;
-					}
-
-					let conv = this.get(user);
-					if (!conv) {
-						// create a new conversation
-						const newConv = {
-							'title': user,
-							'active': true,
-							'messages': [],
-							'unread': 0
-						};
-						this.conversations.unshift(newConv);
-					} else {
-						// simply bring the conversation to the foreground
-						conv.active = true;
-						conv.unread = 0;
-					}
-				},
-				'showConversation': function (user) {
-					if (user.startsWith('@')) user = user.substring(1);
-
-					let conv = this.get(user);
-					if (conv && conv.active == false) {
-						for (const c of this.conversations) {
-							c.active = false;
-						}
-						conv.active = true;
-						conv.unread = 0;
-					} else if (conv && conv.active == true) {
-						// toggle
-						conv.active = false;
-					}
-				},
-				'addMessage': function (user, msg) {
-					if (user.startsWith('@')) user = user.substring(1);
-
-					let conv = this.get(user);
-					if (!conv) {
-						// create a new conversation
-						const newConv = {
-							'title': user,
-							'active': false,
-							'messages': [],
-							'unread': 0
-						};
-						this.conversations.unshift(newConv);
-						conv = newConv;
-					}
-
-					conv.messages.push(msg);
-					if (conv.messages.length > this.history) {
-						conv.messages.shift();
-					}
-
-					if (msg.prefix.nick == user && !conv.active) {
-						conv.unread += 1;
-					}
-
-					// trigger event
-					const customEvent = new Event('newDM');
-					//const root = ref(0);
-					const root = this.$el.parentElement; // todo: fix this by using ref() ?
-
-					root.dispatchEvent(customEvent);
-				},
-				'get': function (user) {
-					if (user.startsWith('@')) user = user.substring(1);
-
-					return this.conversations.find(tab => tab.title === user);
-				},
-				'sendDM': function (user, text, event) {
-					if (!app.mainNavigation.connected) {
-						console.error('You are not connected to a server!');
-						return;
-					}
-					if (user.startsWith('@')) user = user.substring(1);
-
-					console.info('sending DM to user ', user, text);
-					if (text.startsWith('/') || user.length < 1) return;
-					const messageString = 'PRIVMSG '+user+' :'+text;
-					app.connection.ws.send(messageString);
-
-					const conv = this.get(user);
-					if (conv) {
-						conv.input = '';
-						if (event) {
-							event.target.querySelector('input[type="text"]').focus();
-						}
-					}
-				},
-				'formatDatetime': app.formatDatetime
-				/*
-				,'getActive2': function () {
-					const activeConversations = this.conversations.find(conv => conv.active === true);
-					console.warn('act', activeConversations);
-					return activeConversations ? activeConversations : [];
-				}
-				*/
-			}
-		}).mount('#dm');
-
-		app.messageWindow = createApp({
-			// 'el': '#messages',
-			'data': function () {
-				return {
-					'tabs': []
-				}
-			},
-			'computed': {
-				'activeTab': function () {
-					return this.tabs.find(tab => tab.active === true);
-				}
-			},
-			'created': function () {
-				const serverTab = {
-					'title': 'server',
-					'active': true,
-					'messages': [],
-					'users': []
-				};
-				this.tabs.push(serverTab);
-			},
-			'updated': function () {
-				if (!this.activeTab) return;
-
-				// todo: fix this by using ref() ?
-				//const root = ref(null);
-
-				const root = this.$el.parentElement;
-				const msgList = root.querySelector('[data-title="'+this.activeTab.title+'"] .messages');
-
-				msgList.scrollTop = msgList.clientHeight;
-				
-			},
-			'methods': {
-				'get': function (title) {
-					const tab = this.tabs.find(o => o.title === title);
-
-					return (tab) ? tab : false;
-				},
-				'activate': function (title) {
-					if (!this.get(title)) return false;
-
-					for (const tab of app.messageWindow.tabs) {
-						if (tab.title == title) {
-							tab.active = true;
-						} else {
-							tab.active = false;
-						}
-					}
-				},
-				'addTab': function (channel, activate=true) {
-					const exists = this.tabs.find(o => o.title === channel);
-					if (exists) {
-						this.activate(channel);
-					} else {
-						const newTab = {
-							'title': channel,
-							'active': false,
-							'messages': [],
-							'users': []
-						};
-						this.tabs.push(newTab);
-						if (activate) this.activate(newTab.title);
-
-						/*
-						this.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :joined the channel');
-						*/
-					}
-				},
-				'closeTab': function (channel) {
-					app.connection.ws.send('PART '+channel);
-				},
-				'removeTab': function (channel) {
-					const index = this.tabs.findIndex(o => o.title === channel);
-
-					if (index > -1) {
-						this.tabs.splice(index, 1);
-					}
-
-					// set a new active tab
-					const lastTab = this.tabs[this.tabs.length-1];
-					this.activate(lastTab.title);
-				},
-				'formatDatetime': app.formatDatetime,
-				'msgType': function (message) {
-					// console.log('msg type', message);
-					if (message.prefix) {
-					// console.error(message, message.prefix.nick,'@'+app.user.nick);
-					}
-
-					if (message.prefix && !message.prefix.isServer && (message.prefix.nick == app.user.nick || message.prefix.nick == '@'+app.user.nick)) {
-						// this is a normal PRIVMSG sent by you
-						return 'self';
-					}
-
-					const addressedToYou = new RegExp('@'+app.user.nick + '\\b');
-					if (addressedToYou.test(message.params.join(' '))) {
-						// this is a PRIVMSG mentioning you
-						return 'mention';
-					}
-
-					if (message.command && message.command.toUpperCase() == 'PRIVMSG') {
-						// this is a PRIVMSG
-						return 'pm';
-					}
-
-					return '';
-				},
-				'addMessage': function (text, channel) {
-					if (!text || !channel) return;
-
-					const command = ':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 PRIVMSG '+channel+' :'+text;
-					this.addRawCommand(command);
-				},
-				'addRawCommand': function (str) {
-					if (!str) return;
-
-					const customEvent = new Event('customCommand');
-					customEvent.data = str+"\r\n";
-
-					app.connection.onMessage(customEvent);
-				},
-				'newDM': function (user) {
-					if (user.startsWith('@')) user = user.substring(1);
-
-					if (user == app.user.nick) return; // this is you, dummy!
-
-					app.dm.newConversation(user);
-				}
-			}
-		}).mount('#messages');
-
-		app.connection = createApp({
-			'data': function () {
-				return {
-					'ws': null
-				}
-			},
-			'methods': {
-				'connect': function () {
-					const conn = 'wss://'+app.user.serverurl+':'+app.user.serverport;
-					this.ws = new WebSocket('wss://'+app.user.serverurl+':'+app.user.serverport);
-
-					console.log('connecting to', conn);
-
-					this.ws.onopen = this.onOpen;
-					this.ws.onerror = this.onError;
-					this.ws.onclose = this.onClose; 
-					this.ws.onmessage = this.onMessage;
-				},
-				'disconnect': function () {
-					// app.sendMessage('/QUIT');
-					this.ws.send('QUIT');
-					// if the QUIT command works, no need to manually call close
-					// this.ws.close();
-				},
-				'onOpen': function (event) {
-					console.log('INFO: Socket Opened');
-					app.mainNavigation.connected = true;
-					app.user.connectionLock = true; // prevent changes to user data
-
-					this.ws.send('CAP LS 302');
-					this.ws.send('NICK '+app.user.nick);
-					this.ws.send('USER '+app.user.username+' 0 * :'+app.user.realname);
-					
-					// todo: do these as a reply to the list sent by the server
-					// https://unitedchat.org/ircv3
-					this.ws.send('CAP REQ :message-tags');
-					this.ws.send('CAP REQ :server-time');
-					this.ws.send('CAP REQ :echo-message');
-					this.ws.send('CAP END');
-				},
-				'onError': function (error) {
-					console.log('ERR: ', error);
-
-					// todo: handle NICKNAMEISINUSE!
-				},
-				'onClose': function (event) {
-					console.log('INFO: Socket Closed');
-
-					this.ws.onopen = function () {};
-					this.ws.onerror = function () {};
-					this.ws.onclose = function () {};
-					this.ws.onmessage = function () {};
-
-					this.ws = null;
-					app.mainNavigation.connected = false;
-					app.user.connectionLock = false;
-
-					const openChannels = app.messageWindow.tabs.map(function (a) {
-						return a.title;
-					});
-
-					for (const channel of openChannels) {
-						// app.messageWindow.addMessage('closed the connection.', channel);
-						app.messageWindow.addRawCommand(':'+app.user.nick+'!'+app.user.username+'@127.0.0.1 STATUS '+channel+' :closed the connection.');
-					}
-				},
-				'onMessage': function (event) {
-					// console.log('RECV: ', event.data, event);
-
-					const data = (event.detail) ? event.detail : event.data;
-
-					app.messageLog.push(data);
-					const msg = app.parser.parse(data);
-
-					// this can be overridden to display a message in a different tab
-					let targetTab = 'server';
-
-					console.info('cmd', msg.command, msg);
-
-					// handle ping/pong
-					if (msg.command && msg.command.toUpperCase() == 'PING') {
-						const messageParts = data.split(' ');
-						// console.log('replying with:', 'PONG '+messageParts[1]);
-						this.ws.send('PONG '+messageParts[1]);
-						return;
-					}
-
-					if (msg.prefix.isServer && msg.prefix.host == app.server.url) {
-						//console.warn('server message:', event.data);
-					}
-
-					if (msg.command == '376' || msg.command == '422') {
-						// message of the day, request initial LIST
-						this.ws.send('LIST');
-
-						// auto-join channels, if specified
-						if (app.autoJoin.length > 0) {
-							this.ws.send('JOIN '+app.autoJoin.join(','));
-						}
-					}
-
-					if (msg.command == '321') {
-						// list items ("channels"), begin list
-						app.channelList.clear();
-					}
-
-					if (msg.command == '322') {
-						// list items ("channels"), add to list
-						console.warn('add channel to list', msg.params);
-						app.channelList.channels.push(msg.params[1]);
-					}
-
-					if (msg.command == '323') {
-						// sort channel display after building list
-						if (app.channelList.channels.length > 0) {
-							app.channelList.channels.sort();
-						}
-					}
-
-					if (msg.command == '353') {
-						// list users in a channel when joining
-						
-						const users = msg.params[3].split(' ');
-						users.sort();
-						console.info('users in channel', msg.params[2], users);
-
-						const tab = app.messageWindow.get(msg.params[2]);
-						if (tab.title != 'server') {
-							tab.users = users;
-						}
-
-						if (users.length > 0) {
-							/*
-							app.messageWindow.addMessage('Users in this channel are: '+users.join(', '), tab.title);
-							*/
-						} else {
-							app.messageWindow.addMessage('No active users in this channel', tab.title);
-						}
-					}
-
-					if (msg.command == 'JOIN') {
-						
-						// join a new channel
-						const tab = app.messageWindow.get(msg.params[0]);
-						if (tab) {
-							if (msg.prefix.nick == app.user.nick) {
-								// you joined a channel
-								app.messageWindow.activate(msg.params[0]);
-							} else {
-								// somebody else joined a channel
-								if(tab.users.indexOf(msg.prefix.nick) === -1) {
-									tab.users.push(msg.prefix.nick);
-								}
-							}
-						} else {
-							console.info('created new tab for', msg.params[0]);
-							app.messageWindow.addTab(msg.params[0], true);
-						}
-
-						// update the list as well
-						if (msg.prefix.nick == app.user.nick) {
-							if (!app.channelList.channels.includes(msg.params[0])) {
-								app.channelList.channels.push(msg.params[0]);
-								app.channelList.channels.sort();
-							}
-						}
-					}
-
-					if (msg.command == 'PART') {
-						// part a channel
-						if (msg.prefix.nick == app.user.nick) {
-							// you left the channel, close tab
-							app.messageWindow.removeTab(msg.params[0]);
-						} else {
-							// somebody else left the channel
-							const tab = app.messageWindow.get(msg.params[0]);
-							const index = tab.users.indexOf(msg.prefix.nick);
-							tab.users.splice(index, 1);
-							tab.users.sort();
-						}
-					}
-
-					// todo: react to nick changes: update UI across tabs and DMs
-					if (msg.command == 'NICK') {
-						console.warn(msg.prefix.nick, 'changed their nick to', msg.params[0]);
-					}
-
-					// handle QUIT, eg part from all channels correctly
-					// todo: maybe notify user with open DMs?
-					if (msg.command == 'QUIT') {
-						if (msg.prefix.nick != app.user.nick) {
-
-							// remove user from all message tabs
-							for (const tab of app.messageWindow.tabs) {
-								const pos = tab.users.indexOf(msg.prefix.nick);
-								if (pos !== -1) {
-									tab.users.splice(pos, 1);
-								}
-							}
-							console.info(msg.prefix.nick, 'logged off.');
-						}
-					}
-
-					// direct messages eg. PRIVMSG to a single user
-					if (msg.command == 'PRIVMSG' && msg.params.length > 0 && !msg.params[0].startsWith('#')) {
-						console.info('received a DM from', msg.prefix.nick, 'to', msg.params[0]);
-						if (msg.params[0] == app.user.nick) {
-							// this is a message TO you
-							app.dm.addMessage(msg.prefix.nick, msg);
-						} else if (msg.prefix.nick == app.user.nick) {
-							// this is a message BY you
-							app.dm.addMessage(msg.params[0], msg);
-						}
-						return;
-					}
-
-					// channel privmsg etc
-					if (msg.params.length > 0 && msg.params[0].startsWith('#')) {
-						targetTab = msg.params[0];	
-					}
-
-					let target = app.messageWindow.get(targetTab);
-					if (!target) target = app.messageWindow.get('server'); // fallback in case the tab no longer exists
-					target.messages.push(msg);
-				}
-			}
-		}).mount('#connection');
-
-		app.mainNavigation = createApp({
-			// 'el': '#main-nav',
-			'data': function () {
-				return {
-					'connected': false
-				}
-			},
-			'methods': {
-				'toggleConnection': function () {
-					if (app.connection.ws === null) {
-						app.connection.connect();
-					} else {
-						app.connection.disconnect();
-					}
-				}
-			}
-		}).mount('#main-nav');
-
-		document.querySelector('#input').addEventListener('submit', function (e) {
-			e.preventDefault();
-			const msgField = document.querySelector('#msg');
-
-			// add to input log for recent messages functionality
-			app.inputLog.unshift(msgField.value);
-			if (app.inputLog.length > 4) { app.inputLog.slice(0,4); }
-
-			// parse the input
-			const parsed = app.parser.parse(msgField.value);
-			if (parsed.command.startsWith('/')) {
-				parsed.command = parsed.command.substring(1).toUpperCase();
-			}
-			console.log('parsed input', parsed);
-
-			// todo: react to UI changes here?
-
-			const activeTab = app.messageWindow.activeTab.title;
-
-			// smart NAMES command in channels
-			if (parsed.command == 'NAMES' && activeTab !== 'server') {
-				msgField.value = '/'+parsed.command+' '+activeTab;
-			}
-
-			// direct message shorthand with /w
-			if (parsed.command.toUpperCase() == 'W' && parsed.params[0].startsWith('@')) {
-				const recipient = parsed.params[0].substring(1);
-				const message = parsed.params.slice(1).join(' ');
-				msgField.value = '/PRIVMSG '+recipient+' '+message;
-			}
-
-			app.sendMessage(msgField.value, (activeTab == 'server') ? '' : activeTab);
-			msgField.value = '';
-		});
-
-		document.querySelector('#input').addEventListener('keyup', function (e) {
-			// keyboard input history!
-
-			const inputField = this.querySelector('#msg');
-
-			if (e.keyCode == 38) { // up arrow
-				if (app.inputLog.length > 0) {
-					let logPos = inputField.getAttribute('log-position');
-					if (logPos) {
-						logPos = parseInt(logPos);
-
-						logPos++;
-
-						if (!app.inputLog[logPos]) return;
-						
-						inputField.value = app.inputLog[logPos];
-						inputField.setAttribute('log-position', logPos);
-					} else {
-						inputField.value = app.inputLog[0];
-						inputField.setAttribute('log-position', 0);
-					}
-				}
-			}
-
-			if (e.keyCode == 40) { // down arrow
-				if (app.inputLog.length > 0) {
-					let logPos = inputField.getAttribute('log-position');
-					if (logPos) {
-						logPos = parseInt(logPos);
-
-						if (logPos === 0) {
-							inputField.value = '';
-							inputField.setAttribute('log-position', '');
-							return;
-						}
-
-						logPos--;
-
-						if (!app.inputLog[logPos]) return;
-						
-						inputField.value = app.inputLog[logPos];
-						inputField.setAttribute('log-position', logPos);
-					}
-				}
-			}
-		});
-
-		window.addEventListener('beforeunload', function (event) {
-			app.connection.disconnect();
-		});
-	</script>
-
+	<div id="connection">{{ ws ? ws.readyState : '' }}</div>
+	<div id="demo">
+
+		<ul>
+			<li v-for="tab in tabs">
+				<h2>{{ tab === '0' ? 'status' : tab }}</h2>
+				<ul>
+					<li v-for="msg in getChannel(tab)">{{ msg.raw }}</li>
+				</ul>
+			</li>
+		</ul>
+
+		<ul>
+			<li v-for="tab2 in dms">
+				<h2>{{ tab2 }}</h2>
+				<ul>
+					<li v-for="msg2 in getChannel(tab2)">{{ msg2.raw }}</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
 </body>
 </html>
