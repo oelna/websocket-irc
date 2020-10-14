@@ -129,7 +129,7 @@ input[type="button"] {
 	appearance: none;
 	border: 0;
 	font-size: inherit;
-	background-color: var(--accent-primary);
+	background-color: var(--system-color-blue);
 	color: #fffd;
 	padding: 0.2em 0.5em 0.25em;
 	border-radius: 0.2em;
@@ -161,7 +161,7 @@ input[type="number"] {
 	border: 1px solid var(--system-color-gray3);
 	background-color: transparent;
 	padding: 0.15em 0.2em 0.2em;
-	color: var(--text-color);
+	color: var(--text-muted);
 }
 
 input[readonly] {
