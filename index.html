@@ -82,8 +82,8 @@
 			</form>
 		</div>
 		<div id="channels">
-			<h2 v-on:click="this.visible = (this.visible) ? false : true;">Available Channels <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
-			<div v-if="this.visible">
+			<h2 v-on:click="visible = !visible">Available Channels <svg class="icon visible" v-if="visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!visible"><use xlink:href="#invisible" /></svg></h2>
+			<div v-if="visible">
 				<ul class="list">
 					<li v-if="channels.length < 1">No active channels</li>
 					<li v-for="channel in channels">
@@ -99,15 +99,15 @@
 		</div>
 		<div id="chats">
 			<div id="messages" ref="root">
-				<h2 v-on:click="this.visible = !this.visible">Connected channels <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
-				<nav class="tab-navigation" v-if="this.visible">
+				<h2 v-on:click="visible = !visible">Connected channels <svg class="icon visible" v-if="visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!visible"><use xlink:href="#invisible" /></svg></h2>
+				<nav class="tab-navigation" v-if="visible">
 					<ul>
 						<li v-for="tab in tabs" v-bind:class="(tab.active) ? 'active' : ''">
 							<a v-bind:href="tab.title" v-on:click.prevent="activate(tab.title)">{{ tab.title }}&nbsp;<svg class="icon close" v-if="tab.title != 'server'" v-on:click="closeTab(tab.title)"><use xlink:href="#x-circle" /></svg></a>
 						</li>
 					</ul>
 				</nav>
-				<ul class="tab-content" v-if="this.visible">
+				<ul class="tab-content" v-if="visible">
 					<li v-for="tab in tabs" v-bind:data-title="tab.title" v-bind:class="(tab.active) ? 'active' : ''">
 						<ul class="users">
 							<li v-for="user in tab.users"><a href="#dm" v-on:click.prevent="newDM(user)" title="Send a private message to this user"><svg v-if="user.startsWith('@')" class="icon discussion"><use xlink:href="#verified" /></svg> {{ user.replace('@', '') }}</a></li>
@@ -125,13 +125,13 @@
 				</ul>
 			</div>
 
-			<form id="input" v-if="this.visible">
+			<form id="input" v-if="visible">
 				<input type="text" id="msg" placeholder="your message" autocomplete="off" v-model="input" v-on:keyup="keyUp($event)" ref="msgField" />
 				<input type="submit" value="Send" v-on:click.prevent="send" />
 			</form>
 
-			<div class="help" v-if="this.visible">
-				<h2 v-on:click="this.showHelp = !this.showHelp">Help <svg class="icon visible" v-if="this.showHelp"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.showHelp"><use xlink:href="#invisible" /></svg></h2>
+			<div class="help" v-if="visible">
+				<h2 v-on:click="showHelp = !showHelp">Help <svg class="icon visible" v-if="showHelp"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!showHelp"><use xlink:href="#invisible" /></svg></h2>
 				<div class="help-content" v-if="showHelp">
 					<h3>Commands</h3>
 			
@@ -149,8 +149,8 @@
 			</div>
 		</div>
 		<div id="userdata">
-			<h2 v-on:click="this.visible = (this.visible) ? false : true;">User data <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg></h2>
-			<form v-if="this.visible">
+			<h2 v-on:click="visible = !visible">User data <svg class="icon visible" v-if="visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!visible"><use xlink:href="#invisible" /></svg></h2>
+			<form v-if="visible">
 				<p class="input"><label for="user-name">username</label><input type="text" id="user-name" placeholder="your username" v-model="username" v-bind:readonly="lockInput" required /></p>
 				<p class="input"><label for="user-realname">real name</label><input type="text" id="user-realname" placeholder="your real name" v-model="realname" v-bind:readonly="lockInput" required /></p>
 				<p class="input"><label for="user-nick">nickname</label><input type="text" id="user-nick" placeholder="your nickname" v-model="nick" required /></p>
@@ -160,9 +160,9 @@
 			</form>
 		</div>
 		<div id="dm" ref="root">
-			<h2 v-on:click="this.visible = (this.visible) ? false : true;">Direct Messages <svg class="icon visible" v-if="this.visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!this.visible"><use xlink:href="#invisible" /></svg> <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
+			<h2 v-on:click="visible = !visible">Direct Messages <svg class="icon visible" v-if="visible"><use xlink:href="#visible" /></svg><svg class="icon invisible" v-if="!visible"><use xlink:href="#invisible" /></svg> <span class="unread-count" v-if="unreadMessages > 0">{{ unreadMessages }}</span></h2>
 			<!-- direct messages -->
-			<ul class="conversations" v-if="this.visible">
+			<ul class="conversations" v-if="visible">
 				<li v-for="conv in conversations" v-bind:class="(conv.active) ? 'active' : ''" v-bind:id="'dm-'+conv.title">
 					<h3><svg class="icon discussion"><use xlink:href="#arrow-switch" /></svg> <a v-bind:href="conv.title" v-on:click.prevent="showConversation(conv.title)">{{ conv.title }} <span class="unread-count" v-if="conv.unread > 0">{{ conv.unread }}</span></a></h3>
 

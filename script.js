@@ -870,13 +870,15 @@ app.server = createApp({
 }).mount('#server');
 
 // observe system color mode changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-	if (!app.user.colorTheme) {
-		const colorTheme = e.matches ? 'dark' : 'light';
+if (window.matchMedia) {
+	window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+		if (!app.user.colorTheme) {
+			const colorTheme = e.matches ? 'dark' : 'light';
 
-		document.documentElement.setAttribute('data-theme', colorTheme);
-	}
-});
+			document.documentElement.setAttribute('data-theme', colorTheme);
+		}
+	});
+}
 
 window.addEventListener('beforeunload', function (event) {
 	app.connection.disconnect();
