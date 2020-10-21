@@ -378,6 +378,18 @@ h2 .icon.invisible {
 	/* chat message by a normal user */
 }
 
+#messages .tab-content .messages li a {
+	color: currentColor;
+}
+
+#messages .tab-content .messages li .msgimg img {
+	max-width: 100%;
+	height: auto;
+	display: block;
+	width: 50%;
+	margin: 0.5em 25%;
+}
+
 #messages .tab-content .messages li span,
 #messages .tab-content .messages li time {
 	

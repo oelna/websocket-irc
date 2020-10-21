@@ -118,7 +118,7 @@
 								<span class="prefix">{{ (msg.prefix) ? ((!msg.prefix.isServer) ? msg.prefix.nick : (msg.prefix.host) ? msg.prefix.host : 'Server') : 'Server' }}</span>
 								<span class="command" v-bind:title="msg.commandString ? msg.commandString : ''" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.command }}</span>
 								<span class="target" v-bind:class="(tab.title != 'server' && msg.command.toUpperCase() == 'PRIVMSG') ? 'hidden' : ''">{{ msg.params[0] }}</span>
-								<span class="params">{{ msg.params[1] }}</span>
+								<span class="params" v-html="autoLink(msg.params.slice(1).join(' '))"></span>
 							</li>
 						</ul>
 					</li>
