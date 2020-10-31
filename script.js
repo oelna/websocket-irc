@@ -530,7 +530,7 @@ app.messageWindow = createApp({
 				'callback': function (url) {
 					// todo: this is called on input field keyup. why?
 					if (/\.(gif|png|jpe?g|webp|avif)$/i.test(url)) {
-						return  '<a class="msgimg" href="'+url+'" data-external="true" target="_blank" rel="nofollow noopener"><img src="' + url + '"></a>';
+						return '<a class="msgimg" href="'+url+'" data-external="true" target="_blank" rel="nofollow noopener"><img src="' + url + '"></a>';
 					} else {
 						return '<a href="'+url+'" data-external="true" target="_blank" rel="nofollow noopener">' + url + '</a>';
 					}
@@ -910,6 +910,22 @@ app.server = createApp({
 			// 'connectionLock': false,
 			'url': 'irc.arnorichter.de',
 			'port': '47363'
+		}
+	},
+	'created': function () {
+		// remember the last used server connection
+		const recentURL = localStorage.getItem('recentURL');
+		const recentPort = localStorage.getItem('recentPort');
+
+		if (recentURL) { this.url = recentURL; }
+		if (recentPort) { this.port = recentPort; }
+	},
+	'watch': {
+		'url': function () {
+			localStorage.setItem('recentURL', this.url);
+		},
+		'port': function () {
+			localStorage.setItem('recentPort', this.port);
 		}
 	},
 	'methods': {

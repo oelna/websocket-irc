@@ -229,8 +229,9 @@ h2 .icon.invisible {
 }
 
 #channels ul.list li {
-	display: inline;
+	display: inline-block;
 	margin-right: 0.5ch;
+	margin-bottom: 0.25em;
 }
 
 #channels ul.list a {
@@ -307,6 +308,7 @@ h2 .icon.invisible {
 #messages .tab-content .users li {
 	margin-right: 0.5em;
 	font-size: 0.75em;
+	margin-bottom: 0.25em;
 }
 
 #messages .tab-content .users li a {
